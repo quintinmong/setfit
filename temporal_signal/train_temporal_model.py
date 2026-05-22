@@ -14,10 +14,10 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from sentence_transformers import SentenceTransformer
 import numpy as np
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-# 0. 加载外部配置
-load_dotenv()
+# 0. 加载外部配置（自动向上级回溯寻址根目录的 .env）
+load_dotenv(find_dotenv())
 X_DIM = int(os.getenv("GRU_INPUT_SIZE", "512"))
 HIDDEN_DIM = int(os.getenv("GRU_HIDDEN_SIZE", "64"))  # 兼容你的env参数名
 LR = float(os.getenv("GRU_LEARNING_RATE", "0.005"))

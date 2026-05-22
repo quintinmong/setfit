@@ -18,6 +18,7 @@
 
 ```text
 .
+├── .env.example             # 大模型 API 与网络超参数配置文件模板
 ├── ANTIGRAVITY.md           # Antigravity 开发者指南（开发命令与代码风格规范）
 ├── README.md                # 本文档（项目简介与运行手册）
 ├── requirements.txt         # 项目依赖库清单
@@ -28,7 +29,6 @@
 ├── temporal_signal_server.py # 多轮对话时序信号追踪的冷启动原型测试服务
 │
 ├── temporal_signal/
-│   ├── .env.example         # 大模型 API 与网络超参数配置文件模板
 │   ├── llm_generate_temporal_seeds.py # 利用大模型 API 进行多轮会话冷启动数据增强的脚本
 │   ├── train_temporal_model.py # 载入 BGE 共享底座正式训练 GRU 时序分类模型的脚本
 │   └── temporal_signal_llm_augmented.json # 大模型增强得到的纯文本多轮会话训练集
@@ -80,7 +80,7 @@ python3 use_six_intents_model.py
     ```bash
     python3 temporal_signal_server.py
     ```
-*   **大模型语料冷启动数据增强**（可选，需要在 `temporal_signal/.env` 中配置好 API Key 运行，默认生成 240 条样本）：
+*   **大模型语料冷启动数据增强**（可选，需要在项目根目录 `.env` 中配置好 API Key 运行，默认生成 240 条样本）：
     ```bash
     python3 temporal_signal/llm_generate_temporal_seeds.py
     ```

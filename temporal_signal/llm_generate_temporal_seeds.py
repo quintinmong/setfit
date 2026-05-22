@@ -4,11 +4,10 @@ import random
 import time
 import numpy as np
 from openai import OpenAI
-from dotenv import load_dotenv  # 新增：引入外部环境变量加载器
+from dotenv import load_dotenv, find_dotenv  # 引入外部环境变量加载器及寻址器
 
-# 0. 核心安全加固：优先加载当前目录下的 .env 配置文件
-# load_dotenv 会自动寻找并在内存中注入 .env 声明的所有变量
-load_dotenv()
+# 0. 核心安全加固：使用 find_dotenv() 自动向上级回溯寻找项目根目录下的 .env 配置文件
+load_dotenv(find_dotenv())
 
 # 从配置文件或系统环境变量中读取参数（如果配置文件缺失，则使用硬编码作为健壮性兜底）
 API_KEY = os.getenv("LLM_API_KEY")
