@@ -59,7 +59,13 @@ source .venv312/bin/activate
   .venv312/bin/python3 temporal_signal/train_temporal_model.py
   ```
 
+- **一键跑通全自动集成流水线 (包含下载底座、6路意图头微调、时序模型训练以及大脑总路由验证)**
+  ```bash
+  chmod +x run_all.sh && ./run_all.sh
+  ```
+
 ---
+
 
 ## 📐 代码风格与技术规范
 
