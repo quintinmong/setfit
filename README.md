@@ -25,12 +25,20 @@
 ├── intent_demo.py           # 二分类 SetFit 经典训练及预测演示 Demo
 ├── six_intent_server.py     # 六路（场景、思维、情绪、资产、技能、信任）并行意图训练与保存服务
 ├── use_six_intents_model.py # 轻量加载持久化六分类模型进行推理预测的代码示例
+├── temporal_signal_server.py # 多轮对话时序信号追踪的冷启动原型测试服务
+│
+├── temporal_signal/
+│   ├── .env.example         # 大模型 API 与网络超参数配置文件模板
+│   ├── llm_generate_temporal_seeds.py # 利用大模型 API 进行多轮会话冷启动数据增强的脚本
+│   ├── train_temporal_model.py # 载入 BGE 共享底座正式训练 GRU 时序分类模型的脚本
+│   └── temporal_signal_llm_augmented.json # 大模型增强得到的纯文本多轮会话训练集
 │
 ├── models/
 │   └── bge-small-zh-v1.5/   # 预训练基础模型底座（运行 download_model.py 后自动创建）
 │
 └── my_final_six_intents_model/
     ├── bge_encoder/         # 微调后的共享底座编码器
+    ├── temporal_gru_weights.pth # 训练好的 GRU 时序分类器模型权重
     └── classification_heads.pkl # 序列化的 6 个独立分类头字典文件
 ```
 
@@ -65,6 +73,21 @@ python3 six_intent_server.py
 ```bash
 python3 use_six_intents_model.py
 ```
+
+### 5. 多轮会话时序信号追踪 (新增)
+本项目支持将静态单句分类升级为连续 3 轮会话的时序意图倾向性追踪（包含：意向平稳 `0`、购买升温 `1`、流失真拒绝 `2`、异议成功化解 `3`）：
+*   **冷启动测试与现场推理原型服务**（使用 11 条硬编码样本快速拟合 GRU 并跑现场测试）：
+    ```bash
+    python3 temporal_signal_server.py
+    ```
+*   **大模型语料冷启动数据增强**（可选，需要在 `temporal_signal/.env` 中配置好 API Key 运行，默认生成 240 条样本）：
+    ```bash
+    python3 temporal_signal/llm_generate_temporal_seeds.py
+    ```
+*   **正式时序网络模型训练**（自动读取增强的 JSON 文本集并使用微调 BGE 底座做特征抽取，用 GRU 拟合并保存权重）：
+    ```bash
+    python3 temporal_signal/train_temporal_model.py
+    ```
 
 ---
 
