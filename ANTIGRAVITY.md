@@ -43,6 +43,22 @@ source .venv312/bin/activate
   .venv/bin/python3 use_six_intents_model.py
   ```
 
+- **多轮对话时序信号追踪 (测试与演示的原型服务)**
+  ```bash
+  .venv/bin/python3 temporal_signal_server.py
+  ```
+
+- **多轮对话时序信号大模型数据增强 (使用 DeepSeek 快速生成高密度冷启动语料)**
+  ```bash
+  # 运行前请在 temporal_signal/.env 中配置好你的 LLM_API_KEY
+  .venv312/bin/python3 temporal_signal/llm_generate_temporal_seeds.py
+  ```
+
+- **训练时序 GRU 分类网络模型 (利用增强好的 JSON 文本数据集)**
+  ```bash
+  .venv312/bin/python3 temporal_signal/train_temporal_model.py
+  ```
+
 ---
 
 ## 📐 代码风格与技术规范
@@ -82,3 +98,8 @@ device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.i
 - 统一使用 `PEP 8` 编码规范。
 - 脚本中添加关键流程的中文日志打印（例如 `print("开始特征提取...")`）。
 - 意图标签转换应配备清晰的明文词典映射（如 `scene_map`、`emotion_map` 等）。
+
+### 5. 多轮时序追踪设计规范
+- **固定上下文窗口**：时序追踪网络输入固定为连续 3 轮（T-2, T-1, T）的历史会话文本。
+- **Git 最佳实践**：敏感机密配置（如 `.env`）及易膨胀的二进制数据缓存（如 `.npy`）**禁止提交**，使用 `.gitignore` 排除。数据资产应存为 `.json` 纯文本格式进行版本管理，并提供 `.env.example` 配置文件模板。
+- **神经网络结构**：采用轻量级 `SentenceTransformer` 底座将 3 轮文本转成 `[Batch, 3, 512]` 维特征序列，送入单层 `TemporalSignalGRU` 提取最后一轮（T时刻）的隐状态进行时序模式分类。

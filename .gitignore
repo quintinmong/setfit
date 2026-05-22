@@ -31,3 +31,11 @@ runs/
 # OS System Files
 .DS_Store
 Thumbs.db
+
+# Config and API Keys
+*.env
+.env
+
+# Temporal Dataset Cache
+*.npy
+
