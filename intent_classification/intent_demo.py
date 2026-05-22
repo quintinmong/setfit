@@ -29,10 +29,14 @@ train_data = {
 
 train_dataset = Dataset.from_dict(train_data)
 
-# 2. 严格指向你本地用 ModelScope 下载好的 1.5 路径
-MODEL_PATH = "./models/bge-small-zh-v1.5"
+# 获取相对于当前脚本根目录的绝对路径，确保不论从何处运行，位置均一致
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(current_dir)
 
-print("正在从本地加载 BGE-1.5 底座模型...")
+# 2. 严格指向你本地用 ModelScope 下载好的 1.5 路径
+MODEL_PATH = os.path.abspath(os.path.join(root_dir, "models/bge-small-zh-v1.5"))
+
+print(f"正在从本地加载 BGE-1.5 底座模型: {MODEL_PATH} ...")
 model = SetFitModel.from_pretrained(MODEL_PATH)
 
 # 3. 设置轻量训练参数
@@ -67,5 +71,6 @@ for text, pred in zip(test_inputs, preds):
     print(f"输入: '{text}' ---> 识别意图为: [{label_name}]")
 
 # 6. 保存模型
-model.save_pretrained("./my_first_intent_model")
-print("\n业务模型已成功保存至 './my_first_intent_model'")
+save_path = os.path.abspath(os.path.join(root_dir, "my_first_intent_model"))
+model.save_pretrained(save_path)
+print(f"\n业务模型已成功保存至 '{save_path}'")

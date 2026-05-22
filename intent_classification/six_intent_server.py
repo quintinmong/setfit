@@ -12,10 +12,14 @@ import joblib  # 用于保存机器学习分类头
 from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 
-# 1. 严格使用方案指定的本地 1.5 底座
-MODEL_PATH = "./models/bge-small-zh-v1.5"
+# 获取相对于当前脚本根目录的绝对路径，确保不论从何处运行，位置均一致
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(current_dir)
 
-print("正在初始化共享底座 SentenceTransformer...")
+# 1. 严格使用方案指定的本地 1.5 底座
+MODEL_PATH = os.path.abspath(os.path.join(root_dir, "models/bge-small-zh-v1.5"))
+
+print(f"正在初始化共享底座 SentenceTransformer: {MODEL_PATH} ...")
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 encoder = SentenceTransformer(MODEL_PATH, device=device)
 
@@ -36,7 +40,7 @@ train_data = [
     {"text": "我这岁数大了眼花，APP上找不到风险评估在哪里做。", "sc": 0, "th": 0, "em": 0, "as_sig": 0, "sk": 1, "tr": 0},
     {"text": "请问如果我要开个存款证明，必须去网点吗？", "sc": 0, "th": 0, "em": 0, "as_sig": 0, "sk": 0, "tr": 0},
     {"text": "转账限额怎么修改？我想把单笔限额调高到十万。", "sc": 0, "th": 0, "em": 0, "as_sig": 1, "sk": 1, "tr": 0},
-    {"text": "这个储蓄国债和电子式国债有什么不一样吗？", "sc": 0, "th": 0, "em": 0, "as_sig": 0, "sk": 0, "tr": 0},
+    {"text": "这个储蓄国债 and 电子式国债有什么不一样吗？", "sc": 0, "th": 0, "em": 0, "as_sig": 0, "sk": 0, "tr": 0},
     {"text": "小张，今天发行的那款专享理财，编码是多少啊？", "sc": 0, "th": 0, "em": 0, "as_sig": 0, "sk": 0, "tr": 0},
 
     # ==================== 【场景：情绪抱怨 (sc=1)】 ====================
@@ -114,7 +118,7 @@ head_tr = LogisticRegression(class_weight='balanced', max_iter=1000).fit(X_train
 print("🏆 六路并行分类头训练完成！")
 
 # ==================== 💾 核心加固：将成果物持久化固化到本地硬盘 ====================
-SAVE_DIR = "./my_final_six_intents_model"
+SAVE_DIR = os.path.abspath(os.path.join(root_dir, "my_final_six_intents_model"))
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 # 备份或直接固化底座模型
@@ -132,14 +136,5 @@ heads_dict = {
 joblib.dump(heads_dict, os.path.join(SAVE_DIR, "classification_heads.pkl"))
 
 print(f"\n🔥 恭喜！全量模型成果已成功保存至本地文件夹：'{SAVE_DIR}'")
-print("1. 底座模型位于: ./my_final_six_intents_model/bge_encoder")
-print("2. 6路串联分类头位于: ./my_final_six_intents_model/classification_heads.pkl")
-
-
-# 映射表
-#     map_sc = {0: "咨询响应", 1: "情绪抱怨", 2: "主动服务/关系维护"}
-#     map_th = {0: "⚡️快思考（常态服务）", 1: "🧠慢思考（触发复杂路由）"}
-#     map_em = {0: "😊平静", 1: "😡愤怒", 2: "😰焦虑"}
-#     map_as = {0: "➖无资产敏感信号", 1: "💰触发大额资产/动摇信号"}
-#     map_sk = {0: "✅操作熟练", 1: "❌操作生疏（需图文引导）"}
-#     map_tr = {0: "🤝老客高信任", 1: "🛡️低信任/高防御（需安全感先行）"}
+print(f"1. 底座模型位于: {os.path.join(SAVE_DIR, 'bge_encoder')}")
+print(f"2. 6路串联分类头位于: {os.path.join(SAVE_DIR, 'classification_heads.pkl')}")

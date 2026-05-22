@@ -28,11 +28,11 @@ $PYTHON_BIN --version
 
 # 2. 下载共享基础底座模型
 print_banner "步骤 1: 启动共享语义向量底座模型下载 (BGE-small)"
-$PYTHON_BIN download_model.py
+$PYTHON_BIN intent_classification/download_model.py
 
 # 3. 微调底座并训练 6 个机器学习分类头
 print_banner "步骤 2: 启动六路独立意图分类器联合微调与拟合"
-$PYTHON_BIN six_intent_server.py
+$PYTHON_BIN intent_classification/six_intent_server.py
 
 # 4. 训练多轮 GRU 时序心智分类器
 print_banner "步骤 3: 启动三轮时序窗口 GRU 神经网络模型训练"

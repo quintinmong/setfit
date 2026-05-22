@@ -25,22 +25,22 @@ source .venv312/bin/activate
 
 - **下载基础模型底座（BGE-1.5 中文版）**
   ```bash
-  .venv/bin/python3 download_model.py
+  .venv/bin/python3 intent_classification/download_model.py
   ```
 
 - **运行少样本（Few-Shot）微调与二分类 Demo**
   ```bash
-  .venv/bin/python3 intent_demo.py
+  .venv/bin/python3 intent_classification/intent_demo.py
   ```
 
 - **训练与保存六路意图分类模型（场景、思维、情绪、资产信号、系统技能、信任行为）**
   ```bash
-  .venv/bin/python3 six_intent_server.py
+  .venv/bin/python3 intent_classification/six_intent_server.py
   ```
 
 - **加载持久化模型进行快速推理测试**
   ```bash
-  .venv/bin/python3 use_six_intents_model.py
+  .venv/bin/python3 intent_classification/use_six_intents_model.py
   ```
 
 - **多轮对话时序信号追踪 (测试与演示的原型服务)**

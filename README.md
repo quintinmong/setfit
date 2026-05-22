@@ -22,12 +22,14 @@
 ├── ANTIGRAVITY.md           # Antigravity 开发者指南（开发命令与代码风格规范）
 ├── README.md                # 本文档（项目简介与运行手册）
 ├── requirements.txt         # 项目依赖库清单
-├── download_model.py        # 基础底座模型下载脚本（从 ModelScope 下载 BGE-small-zh-v1.5）
-├── intent_demo.py           # 二分类 SetFit 经典训练及预测演示 Demo
-├── six_intent_server.py     # 六路（场景、思维、情绪、资产、技能、信任）并行意图训练与保存服务
-├── use_six_intents_model.py # 轻量加载持久化六分类模型进行推理预测的代码示例
 ├── temporal_signal_server.py # 多轮对话时序信号追踪的冷启动原型测试服务
 ├── agent_router.py          # 融合 [6维意图+多轮时序+NER槽位] 的全功能 Agent 终极大脑总路由
+│
+├── intent_classification/   # 意图分类专属模块目录
+│   ├── download_model.py        # 基础底座模型下载脚本（从 ModelScope 下载 BGE-small-zh-v1.5）
+│   ├── intent_demo.py           # 二分类 SetFit 经典训练及预测演示 Demo
+│   ├── six_intent_server.py     # 六路并行意图训练与保存服务
+│   └── use_six_intents_model.py # 轻量加载持久化六分类模型进行推理预测的代码示例
 │
 ├── temporal_signal/
 │   ├── llm_generate_temporal_seeds.py # 利用大模型 API 进行多轮会话冷启动数据增强的脚本
@@ -75,21 +77,21 @@ pip install -r requirements.txt
 ```
 
 ### 2. 下载基础底座模型
-运行 `download_model.py`，脚本将自动通过阿里云 ModelScope 镜像源极速下载 `BAAI/bge-small-zh-v1.5`：
+运行 `intent_classification/download_model.py`，脚本将自动通过阿里云 ModelScope 镜像源极速下载 `BAAI/bge-small-zh-v1.5`：
 ```bash
-python3 download_model.py
+python3 intent_classification/download_model.py
 ```
 
 ### 3. 训练与保存六路意图分类器
 在 60 条高密度混合场景数据集上微调编码底座并训练 6 个完全解耦的分类头，拟合后保存至本地硬盘：
 ```bash
-python3 six_intent_server.py
+python3 intent_classification/six_intent_server.py
 ```
 
 ### 4. 极速推理预测
 通过加载本地已训练好的六分类模型，仅耗时约 0.2 秒载入，即可进行实时文本意图分类预测：
 ```bash
-python3 use_six_intents_model.py
+python3 intent_classification/use_six_intents_model.py
 ```
 
 ### 5. 多轮会话时序信号追踪 (新增)
