@@ -27,11 +27,17 @@
 ├── six_intent_server.py     # 六路（场景、思维、情绪、资产、技能、信任）并行意图训练与保存服务
 ├── use_six_intents_model.py # 轻量加载持久化六分类模型进行推理预测的代码示例
 ├── temporal_signal_server.py # 多轮对话时序信号追踪的冷启动原型测试服务
+├── agent_router.py          # 融合 [6维意图+多轮时序+NER槽位] 的全功能 Agent 终极大脑总路由
 │
 ├── temporal_signal/
 │   ├── llm_generate_temporal_seeds.py # 利用大模型 API 进行多轮会话冷启动数据增强的脚本
 │   ├── train_temporal_model.py # 载入 BGE 共享底座正式训练 GRU 时序分类模型的脚本
 │   └── temporal_signal_llm_augmented.json # 大模型增强得到的纯文本多轮会话训练集
+│
+├── ner_slot/
+│   ├── ner_generate_corpus.py # 利用大模型 API 进行 NER 槽位数据增强的脚本
+│   ├── ner_infer_and_slot_fill.py # 字符级 BIO 对齐与槽位三态状态机决策业务引擎（含现场测试）
+│   └── ner_raw_corpus.json    # 大模型增强生成的 100 条高质量 NER 标注与槽位训练数据集
 │
 ├── models/
 │   └── bge-small-zh-v1.5/   # 预训练基础模型底座（运行 download_model.py 后自动创建）
@@ -88,6 +94,23 @@ python3 use_six_intents_model.py
     ```bash
     python3 temporal_signal/train_temporal_model.py
     ```
+
+### 6. 命名实体识别 (NER) 与槽位填充 (Slot Filling) (新增)
+系统支持自动对用户发言提取实体（包含：时间 `TIME`、等待前置条件 `WAIT_COND`、决策关系人 `RELATION_PERSON`、目标材料产品 `MATERIAL`），进行字符级 BIO 对齐标签转换，并通过槽位状态机（包含 FILLED / SUGGESTED / EMPTY 三态）输出给下游话术决策：
+*   **NER 冷启动语料生成**（可选，需配置 `.env`，生成 100 条数据）：
+    ```bash
+    python3 ner_slot/ner_generate_corpus.py
+    ```
+*   **槽位填充业务引擎验证**（自动加载 JSON 语料库测试 BIO 转换与槽位状态看板）：
+    ```bash
+    python3 ner_slot/ner_infer_and_slot_fill.py
+    ```
+
+### 7. 闭环 Agent 全功能大脑路由系统 (新增)
+终极大脑主入口。它会统一调用共享微调底座，并行计算 6 路意图、通过 GRU 进行时序研判、读取当前 NER 实体驱动状态机，融合出叙事化状态提示词并根据快慢思考路由大模型，输出最终去 AI 感的话术：
+```bash
+python3 agent_router.py
+```
 
 ---
 

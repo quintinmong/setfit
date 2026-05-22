@@ -1,0 +1,1414 @@
+[
+  {
+    "text": "下周二之前，你能把年金保险的计划书发我邮箱吗？",
+    "entities": [
+      {
+        "word": "下周二",
+        "type": "TIME"
+      },
+      {
+        "word": "年金保险的计划书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等我股市里的资金到账了，我再和我老婆商量一下大额存单的事。",
+    "entities": [
+      {
+        "word": "我股市里的资金到账了",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我老婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等降准落地后，下个月初我再来找你配置理财。",
+    "entities": [
+      {
+        "word": "降准落地后",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "下个月初",
+        "type": "TIME"
+      }
+    ]
+  },
+  {
+    "text": "上次说的纯债基金，你把详细的招募说明书发给我看看。",
+    "entities": [
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "招募说明书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我母亲想开一个养老金账户，需要带什么材料？",
+    "entities": [
+      {
+        "word": "我母亲",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "明天下午三点我带我家孩子来开个儿童卡。",
+    "entities": [
+      {
+        "word": "明天下午三点",
+        "type": "TIME"
+      },
+      {
+        "word": "我家孩子",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等工程款下来，你帮我看看那款结构性存款的协议。",
+    "entities": [
+      {
+        "word": "工程款下来",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "结构性存款的协议",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "这期理财到期后，我想对比一下大额存单和年金保险。",
+    "entities": [
+      {
+        "word": "这期理财到期后",
+        "type": "TIME"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "年金保险",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等忙完这段时间，我让我父亲过来办个遗嘱信托。",
+    "entities": [
+      {
+        "word": "忙完这段时间",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我父亲",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "遗嘱信托",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下周三上午你有空吗？我想当面聊聊资产配置。",
+    "entities": [
+      {
+        "word": "下周三上午",
+        "type": "TIME"
+      }
+    ]
+  },
+  {
+    "text": "我女儿出国需要开存款证明，你有什么模板要求？",
+    "entities": [
+      {
+        "word": "我女儿",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "存款证明",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "放额度的时候记得通知我，我要抢那款固收+产品。",
+    "entities": [
+      {
+        "word": "放额度的时候",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "固收+产品",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "这期到期后先不续，等市场稳一稳我再考虑入市。",
+    "entities": [
+      {
+        "word": "这期到期后",
+        "type": "TIME"
+      },
+      {
+        "word": "市场稳一稳",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "我弟弟想了解一下家族信托，有相关的方案吗？",
+    "entities": [
+      {
+        "word": "我弟弟",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "家族信托",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下个季度初如果股市震荡完企稳了，你帮我筛选几只纯债基金和年金保险计划。",
+    "entities": [
+      {
+        "word": "下个季度初",
+        "type": "TIME"
+      },
+      {
+        "word": "股市震荡完企稳了",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "年金保险计划",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我下周二想过来开个养老金账户，需要带什么材料？",
+    "entities": [
+      {
+        "word": "下周二",
+        "type": "TIME"
+      },
+      {
+        "word": "养老金账户",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "那笔工程款一到位，我就把上次的理财缺口补上。",
+    "entities": [
+      {
+        "word": "工程款",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "我家孩子明年上小学，这笔教育金到期后就转到他名下的定期。",
+    "entities": [
+      {
+        "word": "我家孩子",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "教育金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "到期后",
+        "type": "TIME"
+      }
+    ]
+  },
+  {
+    "text": "等这笔降准落地，你们大额存单的利率会不会再调高些？",
+    "entities": [
+      {
+        "word": "降准落地",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我父母下个月来办移民，需要打印最近半年的流水证明。",
+    "entities": [
+      {
+        "word": "我父母",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "下个月",
+        "type": "TIME"
+      },
+      {
+        "word": "流水证明",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等这波赎回潮过了，纯债基金是不是更稳一点？",
+    "entities": [
+      {
+        "word": "赎回潮过了",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "你帮我把老太婆那个存折挂失一下，明天下午三点我带她来补。",
+    "entities": [
+      {
+        "word": "老太婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "明天下午三点",
+        "type": "TIME"
+      }
+    ]
+  },
+  {
+    "text": "我这边股市震荡完就转入避险资产，年金保险的计划书先发一份给我。",
+    "entities": [
+      {
+        "word": "股市震荡完",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "年金保险",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "计划书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等公司分红到账了，我就预约那个家族信托的签约时间。",
+    "entities": [
+      {
+        "word": "分红到账了",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "家族信托",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "今天下午有急事，我让我太太过来代签存款证明，行不行？",
+    "entities": [
+      {
+        "word": "今天下午",
+        "type": "TIME"
+      },
+      {
+        "word": "我太太",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "存款证明",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等大盘企稳了，我想把活期转成挂钩指数的结构性存款。",
+    "entities": [
+      {
+        "word": "大盘企稳了",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "结构性存款",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我女婿是做外贸的，他有一笔美元现汇下周一到，能直接买外币理财吗？",
+    "entities": [
+      {
+        "word": "我女婿",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "下周",
+        "type": "TIME"
+      },
+      {
+        "word": "外币理财",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "只要这批货的尾款打过来，我立刻把信用卡的逾期清掉。",
+    "entities": [
+      {
+        "word": "尾款打过来",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "我婆婆的存单密码忘了，帮她重置需要本人来吗？",
+    "entities": [
+      {
+        "word": "我婆婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "存单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等月底季末考核完了，你们行里放额度的时候通知我，我儿子要申请留学贷款。",
+    "entities": [
+      {
+        "word": "月底",
+        "type": "TIME"
+      },
+      {
+        "word": "放额度",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我儿子",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "留学贷款",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下周二下午我带我妈去网点，你帮我把定期转出来。",
+    "entities": [
+      {
+        "word": "下周二下午",
+        "type": "TIME"
+      },
+      {
+        "word": "我妈",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等资金到账，你帮我把这笔存成定期。",
+    "entities": [
+      {
+        "word": "资金到账",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "你上次说的那个纯债基金，有没有最新的月报发我一份？",
+    "entities": [
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "月报",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我老婆说你们行的大额存单利率还行，这周五资金到账我就转过来。",
+    "entities": [
+      {
+        "word": "我老婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "这周五",
+        "type": "TIME"
+      },
+      {
+        "word": "资金到账",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "忙完这段时间，我把我爸的退休金账户也转到你这儿来。",
+    "entities": [
+      {
+        "word": "忙完这段时间",
+        "type": "TIME"
+      },
+      {
+        "word": "我爸",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "退休金账户",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "你说那个年金保险，计划书我看了，等降准落地我们再决定。",
+    "entities": [
+      {
+        "word": "年金保险",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "计划书",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "降准落地",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "明天下午三点，你帮我把存款证明开出来，我孩子留学要用。",
+    "entities": [
+      {
+        "word": "明天下午三点",
+        "type": "TIME"
+      },
+      {
+        "word": "存款证明",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我孩子",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等工程款下来，我第一时间找你做资产配置。",
+    "entities": [
+      {
+        "word": "工程款下来",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "我父母想买点国债，你推荐一下这期有什么合适的？",
+    "entities": [
+      {
+        "word": "我父母",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "国债",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "这期",
+        "type": "TIME"
+      }
+    ]
+  },
+  {
+    "text": "上次那个结构性存款的协议，你发我电子版，我让我老公也看看。",
+    "entities": [
+      {
+        "word": "结构性存款",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "协议",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我老公",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "股市震荡完，我再考虑追加基金定投。",
+    "entities": [
+      {
+        "word": "股市震荡完",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "基金定投",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下个月初我妈过生日，我想给她买份年金，你帮我做个方案。",
+    "entities": [
+      {
+        "word": "下个月初",
+        "type": "TIME"
+      },
+      {
+        "word": "我妈",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "年金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "方案",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等我老婆年终奖发下来，我们就来办那个家庭信托。",
+    "entities": [
+      {
+        "word": "我老婆年终奖发下来",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我老婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "家庭信托",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "这周五前，你把消费贷的合同准备好，我带我家主管来签。",
+    "entities": [
+      {
+        "word": "这周五前",
+        "type": "TIME"
+      },
+      {
+        "word": "消费贷",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "合同",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我家主管",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "资金一到账，你就通知我，我把孩子的教育金转进你们行的账户。",
+    "entities": [
+      {
+        "word": "资金一到账",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "孩子",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "教育金",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "理财经理，我下周二有笔定期到期，到时候帮我看看有什么合适的稳健产品。",
+    "entities": [
+      {
+        "word": "下周二",
+        "type": "TIME"
+      },
+      {
+        "word": "定期到期",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "等我这笔工程款到账了，马上通知你，帮我预约一下大额存单的额度。",
+    "entities": [
+      {
+        "word": "工程款到账",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我母亲年纪大了，我想给她买份年金保险，你先把计划书发我看看。",
+    "entities": [
+      {
+        "word": "我母亲",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "年金保险",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "计划书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下午三点多我去行里，把我儿子的教育金产品合同带给我行吗？",
+    "entities": [
+      {
+        "word": "下午三点",
+        "type": "TIME"
+      },
+      {
+        "word": "我儿子",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "教育金产品合同",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等降准落地后，债市应该会回暖，到时候再配置点纯债基金。",
+    "entities": [
+      {
+        "word": "降准落地",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "明天上午我带我父亲来开户，需要准备哪些材料？",
+    "entities": [
+      {
+        "word": "明天上午",
+        "type": "TIME"
+      },
+      {
+        "word": "我父亲",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "手头这笔钱暂时不用，等股市这波震荡过去再说，先放通知存款里。",
+    "entities": [
+      {
+        "word": "股市这波震荡过去",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "通知存款",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我先生单位下个月发年终奖，到时候一块儿规划，现在先了解下你的资产配置方案。",
+    "entities": [
+      {
+        "word": "下个月",
+        "type": "TIME"
+      },
+      {
+        "word": "我先生",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "资产配置方案",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "忙完这段时间，我再约你详细谈谈，上次说的那个私募信托产品资料先发我邮箱。",
+    "entities": [
+      {
+        "word": "忙完这段时间",
+        "type": "TIME"
+      },
+      {
+        "word": "私募信托产品资料",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我女儿要结婚了，想给她做笔嫁妆，你有什么保本理财推荐？",
+    "entities": [
+      {
+        "word": "我女儿",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等那笔理财到期后，把本息转给我太太的卡上，她那个卡号你那边有吧？",
+    "entities": [
+      {
+        "word": "理财到期",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我太太",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "节日当天买理财是不是有礼品？我打算中秋那天来办。",
+    "entities": [
+      {
+        "word": "中秋那天",
+        "type": "TIME"
+      }
+    ]
+  },
+  {
+    "text": "我企业主朋友也想开个对公户，放额度时你提前跟我说，我让他准备好材料。",
+    "entities": [
+      {
+        "word": "放额度时",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我企业主朋友",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "下周一我拿房本过来，做那个抵押消费贷，你之前发的产品简介再发一下。",
+    "entities": [
+      {
+        "word": "下周一",
+        "type": "TIME"
+      },
+      {
+        "word": "房本",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "产品简介",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "先别急着扣款，等我那笔报销下来再还信用卡。",
+    "entities": [
+      {
+        "word": "报销下来",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "下周二我有一笔定期到期，到时候帮我看看有没有合适的大额存单。",
+    "entities": [
+      {
+        "word": "下周二",
+        "type": "TIME"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等我那笔工程款到账了，你帮我预约一下取号，我带我父亲过来办。",
+    "entities": [
+      {
+        "word": "工程款到账",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我父亲",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "明天下午三点方便吗？我把收入证明带过来，顺便聊聊那个年金险计划书。",
+    "entities": [
+      {
+        "word": "明天下午三点",
+        "type": "TIME"
+      },
+      {
+        "word": "收入证明",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "年金险计划书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "这波股市震荡完了，你再帮我看看偏债混合基金，我准备给我家孩子存教育金。",
+    "entities": [
+      {
+        "word": "股市震荡完了",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "偏债混合基金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我家孩子",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等降准落地后，你提醒我一下，我把那个存款证明开了。",
+    "entities": [
+      {
+        "word": "降准落地后",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "存款证明",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "这期理财到期那天，我是不是要去柜台签个字？我老伴儿可能也来。",
+    "entities": [
+      {
+        "word": "到期那天",
+        "type": "TIME"
+      },
+      {
+        "word": "我老伴儿",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等放额度的时候第一时间告诉我，我得给我小微企业主管转一笔过去。",
+    "entities": [
+      {
+        "word": "放额度的时候",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "小微企业主管",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "节后上班第一天，你帮我查一下那个纯债基金的分红，顺便把我儿子的保险单再打印一份。",
+    "entities": [
+      {
+        "word": "节后上班第一天",
+        "type": "TIME"
+      },
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "保险单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等忙完这段时间，我带我父母过来办一下那个养老理财，你先发我个计划书看看。",
+    "entities": [
+      {
+        "word": "忙完这段时间",
+        "type": "TIME"
+      },
+      {
+        "word": "我父母",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "计划书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "资金一回来，我就把房贷提前还了，你帮我预约一下，我女儿也一起过来。",
+    "entities": [
+      {
+        "word": "资金一回来",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我女儿",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "这个月发了年终奖，我想买点黄金积存，你那边有产品说明书吗？我老婆想看看。",
+    "entities": [
+      {
+        "word": "发了年终奖",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "产品说明书",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我老婆",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "你上次说的那个年金险，我打算下周带我妈一起过来做计划。",
+    "entities": [
+      {
+        "word": "年金险",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "下周",
+        "type": "TIME"
+      },
+      {
+        "word": "我妈",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等这笔大额存单到期了，你帮我规划一下，我准备给我哥汇一笔。",
+    "entities": [
+      {
+        "word": "大额存单到期",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我哥",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "今天下午客户转过来一笔钱，你帮我看看有没有短期理财，我先生想保本的。",
+    "entities": [
+      {
+        "word": "今天下午",
+        "type": "TIME"
+      },
+      {
+        "word": "我先生",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等放款下来后，我把那套房的评估报告带过来，顺便谈谈那个保险方案。",
+    "entities": [
+      {
+        "word": "放款下来后",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "评估报告",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "保险方案",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下周二我有一笔定期到期，到时候帮我转到新发的那个纯债基金里。",
+    "entities": [
+      {
+        "word": "下周二",
+        "type": "TIME"
+      },
+      {
+        "word": "定期到期",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "纯债基金",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等我股市的钱解套了，你帮我看看有没有稳健点的年金保险计划书。",
+    "entities": [
+      {
+        "word": "股市的钱解套",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "年金保险计划书",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "明天下午三点前，你把我上次办的那个大额存单的存款证明发我邮箱。",
+    "entities": [
+      {
+        "word": "明天下午三点",
+        "type": "TIME"
+      },
+      {
+        "word": "大额存单",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "存款证明",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我父亲想开个户，需要带什么材料？他腿脚不方便，我能代办吗？",
+    "entities": [
+      {
+        "word": "我父亲",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等这波降准落地了，是不是贷款利率会低一点？我准备给小微企业主管做一笔经营贷。",
+    "entities": [
+      {
+        "word": "降准落地",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "小微企业主管",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "节日当天你们网点开门吗？我老婆想过来领那个贵金属礼品。",
+    "entities": [
+      {
+        "word": "节日当天",
+        "type": "TIME"
+      },
+      {
+        "word": "我老婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "贵金属礼品",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我家孩子明年要出国留学，你帮我推荐一下哪个结构性存款合适？",
+    "entities": [
+      {
+        "word": "明年",
+        "type": "TIME"
+      },
+      {
+        "word": "我家孩子",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "结构性存款",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "那款信托产品的合同条款，你帮我圈一下重点，我拿回去给我父母看看。",
+    "entities": [
+      {
+        "word": "信托产品",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "合同条款",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我父母",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等美国加息周期结束了，我打算把美元定存转出来。",
+    "entities": [
+      {
+        "word": "美国加息周期结束",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "这期理财产品到期后，如果收益率还行，我继续让老太婆的钱也加进来。",
+    "entities": [
+      {
+        "word": "这期理财产品到期后",
+        "type": "TIME"
+      },
+      {
+        "word": "老太婆",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "麻烦你把前两天聊的那个家族信托尽职调查清单再发我一下。",
+    "entities": [
+      {
+        "word": "家族信托",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "尽职调查清单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我大舅哥想咨询跨境汇款的事，他人在国外，你能跟他视频吗？",
+    "entities": [
+      {
+        "word": "我大舅哥",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等月底季度结息完，我账上会有一笔大额资金闲置，你给我推荐个灵活的T+0理财。",
+    "entities": [
+      {
+        "word": "月底季度结息完",
+        "type": "TIME"
+      },
+      {
+        "word": "T+0理财",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "我太太看中你们那个百万医疗险，但是她有既往病史，你帮我看看核保能过吗？",
+    "entities": [
+      {
+        "word": "我太太",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "百万医疗险",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下周二我要去签合同，你帮我提前把按揭贷款合同准备好。",
+    "entities": [
+      {
+        "word": "下周二",
+        "type": "TIME"
+      },
+      {
+        "word": "按揭贷款合同",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等我那笔理财到期了，再帮我看看有什么好的固收产品。",
+    "entities": [
+      {
+        "word": "理财到期",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "我老婆让我把她的定期存单换成大额存单，你给算算哪个划算。",
+    "entities": [
+      {
+        "word": "我老婆",
+        "type": "RELATION_PERSON"
+      },
+      {
+        "word": "定期存单",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "下个月房贷利率调整后，你帮我算算月供能少多少。",
+    "entities": [
+      {
+        "word": "下个月",
+        "type": "TIME"
+      },
+      {
+        "word": "房贷利率调整",
+        "type": "WAIT_COND"
+      }
+    ]
+  },
+  {
+    "text": "我小舅子想开个对公账户，你教他怎么线上预约。",
+    "entities": [
+      {
+        "word": "我小舅子",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "你把那个年金险的条款发给我和我太太看看。",
+    "entities": [
+      {
+        "word": "年金险",
+        "type": "MATERIAL"
+      },
+      {
+        "word": "我太太",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "等这月工资到账，我周三就去存个七天通知存款。",
+    "entities": [
+      {
+        "word": "周三",
+        "type": "TIME"
+      },
+      {
+        "word": "工资到账",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "七天通知存款",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "节后第一天上班，你帮我把这个跨境汇款尽快处理了，我儿子等着交学费。",
+    "entities": [
+      {
+        "word": "节后第一天",
+        "type": "TIME"
+      },
+      {
+        "word": "我儿子",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "上次那份贵金属投资报告，你再邮件发我一下。",
+    "entities": [
+      {
+        "word": "贵金属投资报告",
+        "type": "MATERIAL"
+      }
+    ]
+  },
+  {
+    "text": "等我女儿签证办下来，我就把留学保证金转到你们行。",
+    "entities": [
+      {
+        "word": "签证办下来",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "我女儿",
+        "type": "RELATION_PERSON"
+      }
+    ]
+  },
+  {
+    "text": "下周我父亲寿宴结束，你把我那款信托产品明细发我一下。",
+    "entities": [
+      {
+        "word": "下周",
+        "type": "TIME"
+      },
+      {
+        "word": "寿宴结束",
+        "type": "WAIT_COND"
+      },
+      {
+        "word": "信托产品明细",
+        "type": "MATERIAL"
+      }
+    ]
+  }
+]

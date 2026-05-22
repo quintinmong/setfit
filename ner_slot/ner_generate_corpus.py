@@ -92,41 +92,46 @@ def generate_ner_batch(count_to_generate):
 
 
 # ==================== 🪐 循环收集与本地 BIO 转换 ====================
-target_total = 100  # 体验版冷启动先生成 100 条高质量带槽位文本
-ner_raw_dataset = []
+def main():
+    target_total = 100  # 体验版冷启动先生成 100 条高质量带槽位文本
+    ner_raw_dataset = []
 
-while len(ner_raw_dataset) < target_total:
-    needed = target_total - len(ner_raw_dataset)
-    print(
-        f"--> 正在向大模型请求 {min(needed, 15)} 条 NER 槽位样本 (当前进度: {len(ner_raw_dataset)}/{target_total})...")
-    batch = generate_ner_batch(min(needed, 15))
+    while len(ner_raw_dataset) < target_total:
+        needed = target_total - len(ner_raw_dataset)
+        print(
+            f"--> 正在向大模型请求 {min(needed, 15)} 条 NER 槽位样本 (当前进度: {len(ner_raw_dataset)}/{target_total})...")
+        batch = generate_ner_batch(min(needed, 15))
 
-    valid_count = 0
-    for sample in batch:
-        if "text" in sample and "entities" in sample and isinstance(sample["entities"], list):
-            # 校验实体是否真的在文本里
-            is_valid = True
-            for ent in sample["entities"]:
-                if ent.get("word") not in sample["text"]:
-                    is_valid = False
-                    break
-            if is_valid:
-                ner_raw_dataset.append(sample)
-                valid_count += 1
+        valid_count = 0
+        for sample in batch:
+            if "text" in sample and "entities" in sample and isinstance(sample["entities"], list):
+                # 校验实体是否真的在文本里
+                is_valid = True
+                for ent in sample["entities"]:
+                    if ent.get("word") not in sample["text"]:
+                        is_valid = False
+                        break
+                if is_valid:
+                    ner_raw_dataset.append(sample)
+                    valid_count += 1
 
-    print(f"  └── 本批次大模型吐出 {len(batch)} 条，合规通过校验: {valid_count} 条")
-    time.sleep(1)
+        print(f"  └── 本批次大模型吐出 {len(batch)} 条，合规通过校验: {valid_count} 条")
+        time.sleep(1)
 
-# 保存大模型生成的原生 JSON 格式，方便调试与槽位匹配测试
-output_json_path = "./ner_slot/ner_raw_corpus.json"
-os.makedirs("./ner_slot", exist_ok=True)
-with open(output_json_path, "w", encoding="utf-8") as f:
-    json.dump(ner_raw_dataset, f, ensure_ascii=False, indent=2)
+    # 保存大模型生成的原生 JSON 格式，方便调试与槽位匹配测试（强制锁定绝对路径写入同级目录）
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+    output_json_path = os.path.join(CURRENT_DIR, "ner_raw_corpus.json")
+    with open(output_json_path, "w", encoding="utf-8") as f:
+        json.dump(ner_raw_dataset, f, ensure_ascii=False, indent=2)
 
-print(f"\n🏆 NER 槽位冷启动原始语料成功固化到: '{output_json_path}'")
+    print(f"\n🏆 NER 槽位冷启动原始语料成功固化到: '{output_json_path}'")
 
-# 展示 2 条看效果
-for case in ner_raw_dataset[:2]:
-    print(f"\n文本: {case['text']}")
-    for e in case['entities']:
-        print(f"  └── 抽取实体 -> 词: {e['word']} | 类型: {e['type']}")
+    # 展示 2 条看效果
+    for case in ner_raw_dataset[:2]:
+        print(f"\n文本: {case['text']}")
+        for e in case['entities']:
+            print(f"  └── 抽取实体 -> 词: {e['word']} | 类型: {e['type']}")
+
+
+if __name__ == "__main__":
+    main()
