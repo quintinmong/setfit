@@ -1,0 +1,33 @@
+# Virtual Environments
+.venv/
+.venv312/
+venv/
+ENV/
+
+# Model Files & Weights
+models/
+my_first_intent_model/
+my_final_six_intents_model/
+checkpoints/
+
+# Python Runtime & Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+runs/
+*.log
+
+# IDE & Editor Settings
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS System Files
+.DS_Store
+Thumbs.db

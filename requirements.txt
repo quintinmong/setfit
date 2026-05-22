@@ -1,0 +1,17 @@
+# Core ML & NLP Libraries
+setfit==1.1.3
+sentence-transformers==5.5.1
+modelscope==1.37.0
+transformers==5.9.0
+datasets==4.8.5
+
+# Deep Learning Backend
+torch==2.12.0
+accelerate==1.13.0
+
+# Scientific & Classical ML Libraries
+scikit-learn==1.8.0
+joblib==1.5.3
+numpy==2.4.6
+pandas==3.0.3
+scipy==1.17.1
