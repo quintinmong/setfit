@@ -33,11 +33,6 @@ source .venv312/bin/activate
   .venv/bin/python3 intent_demo.py
   ```
 
-- **训练与测试三路意图分类模型（场景、思维、情绪）**
-  ```bash
-  .venv/bin/python3 three_intent_server.py
-  ```
-
 - **训练与保存六路意图分类模型（场景、思维、情绪、资产信号、系统技能、信任行为）**
   ```bash
   .venv/bin/python3 six_intent_server.py

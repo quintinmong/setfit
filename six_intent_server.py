@@ -20,6 +20,7 @@ device = "mps" if torch.backends.mps.is_available() else "cpu"
 encoder = SentenceTransformer(MODEL_PATH, device=device)
 
 # 2. 60条符合方案标准的多维高密度数据集
+# 字段说明：sc(场景), th(快慢), em(情绪), as_sig(资产信号), sk(熟练度), tr(信任度)
 train_data = [
     # ==================== 【场景：咨询响应 (sc=0)】 ====================
     {"text": "请问手机银行在哪里可以买理财？", "sc": 0, "th": 0, "em": 0, "as_sig": 0, "sk": 1, "tr": 0},
@@ -133,3 +134,12 @@ joblib.dump(heads_dict, os.path.join(SAVE_DIR, "classification_heads.pkl"))
 print(f"\n🔥 恭喜！全量模型成果已成功保存至本地文件夹：'{SAVE_DIR}'")
 print("1. 底座模型位于: ./my_final_six_intents_model/bge_encoder")
 print("2. 6路串联分类头位于: ./my_final_six_intents_model/classification_heads.pkl")
+
+
+# 映射表
+#     map_sc = {0: "咨询响应", 1: "情绪抱怨", 2: "主动服务/关系维护"}
+#     map_th = {0: "⚡️快思考（常态服务）", 1: "🧠慢思考（触发复杂路由）"}
+#     map_em = {0: "😊平静", 1: "😡愤怒", 2: "😰焦虑"}
+#     map_as = {0: "➖无资产敏感信号", 1: "💰触发大额资产/动摇信号"}
+#     map_sk = {0: "✅操作熟练", 1: "❌操作生疏（需图文引导）"}
+#     map_tr = {0: "🤝老客高信任", 1: "🛡️低信任/高防御（需安全感先行）"}

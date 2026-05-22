@@ -23,7 +23,6 @@
 ├── requirements.txt         # 项目依赖库清单
 ├── download_model.py        # 基础底座模型下载脚本（从 ModelScope 下载 BGE-small-zh-v1.5）
 ├── intent_demo.py           # 二分类 SetFit 经典训练及预测演示 Demo
-├── three_intent_server.py   # 三路（场景、思维、情绪）并行意图分类训练与验证服务
 ├── six_intent_server.py     # 六路（场景、思维、情绪、资产、技能、信任）并行意图训练与保存服务
 ├── use_six_intents_model.py # 轻量加载持久化六分类模型进行推理预测的代码示例
 │
@@ -55,19 +54,13 @@ pip install -r requirements.txt
 python3 download_model.py
 ```
 
-### 3. 运行三路意图分类演示
-对「场景」、「思维」、「情绪」三个相互独立的语义维度进行并行训练并执行现场测试：
-```bash
-python3 three_intent_server.py
-```
-
-### 4. 训练与保存六路意图分类器
+### 3. 训练与保存六路意图分类器
 在 60 条高密度混合场景数据集上微调编码底座并训练 6 个完全解耦的分类头，拟合后保存至本地硬盘：
 ```bash
 python3 six_intent_server.py
 ```
 
-### 5. 极速推理预测
+### 4. 极速推理预测
 通过加载本地已训练好的六分类模型，仅耗时约 0.2 秒载入，即可进行实时文本意图分类预测：
 ```bash
 python3 use_six_intents_model.py
