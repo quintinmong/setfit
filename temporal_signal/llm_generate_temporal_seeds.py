@@ -137,14 +137,12 @@ for lbl, target_count in target_plan.items():
 
 random.shuffle(final_llm_dataset)
 
-# 最佳实践：保存为 .json（适合 Git 追踪）和 .npy（兼容原有逻辑），但 .npy 会被 .gitignore 忽略
-json_output_file = "./temporal_signal_llm_augmented.json"
-npy_output_file = "./temporal_signal_llm_augmented.npy"
+# 获取当前脚本所在目录作为绝对路径基准
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# 尝试兼容相对路径（如果是在 temporal_signal 目录下执行该脚本，应该保存在同级）
-if not os.path.exists("./temporal_signal") and os.path.exists("../temporal_signal"):
-    json_output_file = "./temporal_signal_llm_augmented.json"
-    npy_output_file = "./temporal_signal_llm_augmented.npy"
+# 最佳实践：保存为 .json（适合 Git 追踪）和 .npy（兼容原有逻辑），但 .npy 会被 .gitignore 忽略
+json_output_file = os.path.join(current_dir, "temporal_signal_llm_augmented.json")
+npy_output_file = os.path.join(current_dir, "temporal_signal_llm_augmented.npy")
 
 with open(json_output_file, "w", encoding="utf-8") as f:
     json.dump(final_llm_dataset, f, ensure_ascii=False, indent=2)

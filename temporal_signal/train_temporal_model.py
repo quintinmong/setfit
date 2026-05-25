@@ -65,13 +65,11 @@ def main():
     print("===================================================================")
 
     # 2. 加载生成的 LLM 变体语料 (优先读取 JSON)
-    DATA_PATH_JSON = "./temporal_signal/temporal_signal_llm_augmented.json"
-    DATA_PATH_NPY = "./temporal_signal/temporal_signal_llm_augmented.npy"
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(current_dir)
 
-    if not os.path.exists(DATA_PATH_JSON) and not os.path.exists(DATA_PATH_NPY):
-        # 兼容处理：如果执行路径在子目录下，尝试直接读取
-        DATA_PATH_JSON = "./temporal_signal_llm_augmented.json"
-        DATA_PATH_NPY = "./temporal_signal_llm_augmented.npy"
+    DATA_PATH_JSON = os.path.join(current_dir, "temporal_signal_llm_augmented.json")
+    DATA_PATH_NPY = os.path.join(current_dir, "temporal_signal_llm_augmented.npy")
 
     import json
 
@@ -86,13 +84,8 @@ def main():
         raise FileNotFoundError(f"❌ 找不到冷启动增强语料数据文件！请确认是否生成或存放在 temporal_signal 目录下。")
 
     # 3. 载入固化的共享 BGE 底座 (做路径加固，防止 PyCharm 工作目录切换导致找不到模型)
-    ENCODER_PATH = "./my_final_six_intents_model/bge_encoder"
-    BASE_MODEL_PATH = "./models/bge-small-zh-v1.5"
-
-    # 如果发现路径不在当前目录，自动往上一级（项目根目录）去寻找
-    if not os.path.exists(ENCODER_PATH) and os.path.exists("../my_final_six_intents_model/bge_encoder"):
-        ENCODER_PATH = "../my_final_six_intents_model/bge_encoder"
-        BASE_MODEL_PATH = "../models/bge-small-zh-v1.5"
+    ENCODER_PATH = os.path.join(root_dir, "my_final_six_intents_model/bge_encoder")
+    BASE_MODEL_PATH = os.path.join(root_dir, "models/bge-small-zh-v1.5")
 
     if not os.path.exists(ENCODER_PATH):
         print(f"⚠️ 未检测到微调底座，自动回滚至本地基础 1.5 底座: {BASE_MODEL_PATH}")
@@ -156,7 +149,7 @@ def main():
             print(f"  ├── Epoch [{epoch}/{EPOCHS}] -> 交叉熵 Loss: {epoch_loss:.4f} | 训练集准确率: {acc:.2f}%")
 
     # 7. 模型持久化固化
-    SAVE_DIR = "./my_final_six_intents_model"
+    SAVE_DIR = os.path.join(root_dir, "my_final_six_intents_model")
     os.makedirs(SAVE_DIR, exist_ok=True)
     MODEL_SAVE_PATH = os.path.join(SAVE_DIR, "temporal_gru_weights.pth")
     torch.save(model.state_dict(), MODEL_SAVE_PATH)
