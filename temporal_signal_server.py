@@ -1,3 +1,7 @@
+# ⚠️ DEPRECATED：此文件为早期原型，使用旧版单头 TemporalSignalGRU 和手写种子数据。
+# 请使用 temporal_signal/train_temporal_model.py 进行正式训练。
+# 此文件保存的 temporal_gru_model.pth 与当前 MultiHeadTemporalGRU 不兼容，勿用于生产。
+
 import sys
 import os
 

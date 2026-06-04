@@ -10,45 +10,50 @@ from sentence_transformers import SentenceTransformer
 # 引入写好的业务模块（使用动态绝对路径加固过的模块）
 from ner_slot.ner_infer_and_slot_fill import SlotFillingStateMachine, NERInferencer
 
+# 引入新版多头 GRU 模型和时序常量
+from temporal_signal.train_temporal_model import MultiHeadTemporalGRU
+from temporal_signal.temporal_constants import (
+    prepare_temporal_features,
+    T1_LABELS, T7_LABELS, T8_LABELS,
+    INTENT_LABEL_MAPS
+)
+
 # 0. 载入配置与硬件加速 (自动向上回溯寻找根目录的 .env)
 load_dotenv(find_dotenv())
 device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 print("===================================================================")
-print(f"🔮 银行客户经理数字分身 Agent 终极全功能大脑启动... | 核心设备: {device}")
+print(f"银行客户经理数字分身 Agent 终极全功能大脑启动... | 核心设备: {device}")
 print("===================================================================\n")
 
 # 1. 统一加载模型（锁定在项目根目录下）
 ENCODER_PATH = "./my_final_six_intents_model/bge_encoder"
 encoder = SentenceTransformer(ENCODER_PATH, device=device)
 
-# A. 严格载入全量 6 意图机器学习分类头
-heads = joblib.load("./my_final_six_intents_model/classification_heads.pkl")
+# A. 载入全量 6 意图机器学习分类头（v2 格式，带版本校验）
+_artifact = joblib.load("./my_final_six_intents_model/classification_heads.pkl")
+if _artifact.get("version") == 2:
+    heads = _artifact["heads"]
+else:
+    heads = _artifact  # 向后兼容旧格式
 
-# B. 载入多轮时序 GRU 网络
-from temporal_signal.train_temporal_model import TemporalSignalGRU
-
-temporal_model = TemporalSignalGRU(input_size=512, hidden_size=64, num_classes=4).to(device)
-temporal_model.load_state_dict(torch.load("./my_final_six_intents_model/temporal_gru_weights.pth", map_location=device))
+# B. 载入多头时序 GRU 网络
+temporal_model = MultiHeadTemporalGRU().to(device)
+temporal_model.load_state_dict(
+    torch.load("./my_final_six_intents_model/temporal_gru_weights.pth", map_location=device)
+)
 temporal_model.eval()
 
 # C. NER 推理器（条件触发）
 NER_HEAD_PATH = "./my_final_six_intents_model/ner_head_weights.pth"
 if os.path.exists(NER_HEAD_PATH):
     ner_inferencer = NERInferencer(ENCODER_PATH, NER_HEAD_PATH, device)
-    print("✅ NER 推理器加载成功")
+    print("NER 推理器加载成功")
 else:
     ner_inferencer = None
-    print("⚠️  NER 模型未找到，请先运行 python3 ner_slot/ner_train.py")
+    print("NER 模型未找到，请先运行 python3 ner_slot/ner_train.py")
 
 # D. 大模型初始化
 client = OpenAI(api_key=os.getenv("LLM_API_KEY"), base_url=os.getenv("LLM_BASE_URL"))
-
-# 2. 补齐 6 路专属明文词典映射
-scene_map = {0: "咨询响应", 1: "情绪抱怨", 2: "主动服务/关系维护"}
-thinking_map = {0: "⚡️快思考（常态服务）", 1: "🧠慢思考（触发宏观分析、专家案例或同业对比）"}
-emotion_map = {0: "😊平静", 1: "😡愤怒", 2: "😰焦虑"}
-binary_map = {0: "❌ 不包含", 1: "✅ 包含"}  # 用于后 3 路专项信号
-signal_map = {0: "常态对话", 1: "📈 意向升温", 2: "🛑 触发真拒绝", 3: "🤝 异议成功化解"}
 
 # NER 条件触发词表（命中任意一词才启动 NER 推理）
 NER_TRIGGER_WORDS = [
@@ -67,23 +72,24 @@ def should_trigger_ner(text: str) -> bool:
 def run_agent_brain(dialogue_history):
     current_input = dialogue_history[-1]
 
-    # === Step 1: 底座单次提取向量 ===
+    # === Step 1: 底座单次提取当前轮向量 ===
     feat_single = encoder.encode([current_input], show_progress_bar=False)
-    feat_history = encoder.encode(dialogue_history, show_progress_bar=False)
 
-    # === Step 2: 真正调用全量 6 路分类头推理 ===
+    # === Step 2: 调用全量 6 路分类头推理（新维度命名）===
     pred_scene = heads["scene"].predict(feat_single)[0]
-    pred_thinking = heads["thinking"].predict(feat_single)[0]
-    pred_emotion = heads["emotion"].predict(feat_single)[0]
-    pred_asset = heads["asset"].predict(feat_single)[0]  # 第4路：资产信号
-    pred_skill = heads["skill"].predict(feat_single)[0]  # 第5路：系统技能
-    pred_trust = heads["trust"].predict(feat_single)[0]  # 第6路：信任行为
+    pred_subtype = heads["sub_type"].predict(feat_single)[0]
+    pred_emotion = heads["emotion_label"].predict(feat_single)[0]
+    pred_info = heads["info_source"].predict(feat_single)[0]
+    pred_skill = heads["skill_trigger"].predict(feat_single)[0]
+    pred_intent = heads["intent_label"].predict(feat_single)[0]
 
-    # === Step 3: 多轮时序 GRU 推理 ===
-    feat_tensor = torch.tensor(feat_history, dtype=torch.float32).unsqueeze(0).to(device)
+    # === Step 3: 多轮时序 GRU 推理（三路输出）===
+    feat_tensor = prepare_temporal_features(encoder, dialogue_history, device)
     with torch.no_grad():
-        temporal_logits = temporal_model(feat_tensor)
-        pred_temporal = torch.argmax(temporal_logits, dim=1).item()
+        logits_t1, logits_t7, logits_t8 = temporal_model(feat_tensor)
+        pred_t1 = torch.argmax(logits_t1, dim=1).item()
+        pred_t7 = torch.argmax(logits_t7, dim=1).item()
+        pred_t8 = torch.argmax(logits_t8, dim=1).item()
 
     # === Step 4: NER 条件触发 + 槽位状态机驱动 ===
     entities = []
@@ -94,27 +100,37 @@ def run_agent_brain(dialogue_history):
         sf_machine.inject_entities(entities)
     slot_decision = sf_machine.emit_downstream_decision()
 
-    # === 看板打印全面升级为 6 维看板 ===
+    # === 感知层6维看板打印 ===
+    scene_str = INTENT_LABEL_MAPS["scene"][pred_scene]
+    subtype_str = INTENT_LABEL_MAPS["sub_type"][pred_subtype]
+    emotion_str = INTENT_LABEL_MAPS["emotion_label"][pred_emotion]
+    info_str = INTENT_LABEL_MAPS["info_source"][pred_info]
+    skill_str = INTENT_LABEL_MAPS["skill_trigger"][pred_skill]
+    intent_str = INTENT_LABEL_MAPS["intent_label"][pred_intent]
+    t1_str = T1_LABELS[pred_t1]
+    t7_str = T7_LABELS[pred_t7]
+    t8_str = T8_LABELS[pred_t8]
+
     print("-------------------------------------------------------------------")
-    print(f"📡 【感知层 6 维全量研判】 用户最新发言: \"{current_input}\"")
-    print(
-        f"  ├── 核心维度: 场景=[{scene_map[pred_scene]}] | 情绪=[{emotion_map[pred_emotion]}] | 思维={thinking_map[pred_thinking]}")
-    print(
-        f"  ├── 专项信号: 资产信号=[{binary_map[pred_asset]}] | 系统技能=[{binary_map[pred_skill]}] | 信任行为=[{binary_map[pred_trust]}]")
-    print(f"  ├── 时序变化: 纵向轨迹 -> {signal_map[pred_temporal]}")
+    print(f"【感知层 6 维全量研判】 用户最新发言: \"{current_input}\"")
+    print(f"  ├── 场景=[{scene_str}] | 子类型=[{subtype_str}] | 情绪=[{emotion_str}]")
+    print(f"  ├── 信息来源=[{info_str}] | 技能触发=[{skill_str}] | 意图=[{intent_str}]")
+    print(f"  ├── 时序: T1意向走势=[{t1_str}] | T7拒绝类型=[{t7_str}] | T8化解程度=[{t8_str}]")
     print(f"  └── 槽位决策: {slot_decision}")
     print("-------------------------------------------------------------------")
 
-    # === Step 5: 叙事化状态提示词（全面整合 6 维和时序） ===
+    # === Step 5: 叙事化状态提示词（全面整合 6 维和时序）===
     narrative_context = (
-        f"当前对话处于【{scene_map[pred_scene]}】场景，客户情绪表现为【{emotion_map[pred_emotion]}】。 "
-        f"该发言中，资产空置或配置信号为【{binary_map[pred_asset]}】，对手机银行等系统技能诉求为【{binary_map[pred_skill]}】，信任倾向或抗拒行为为【{binary_map[pred_trust]}】。 "
-        f"时序监测显示客户近几轮的心智演变呈现【{signal_map[pred_temporal]}】趋势。 "
+        f"当前对话处于【{scene_str}】场景，子类型为【{subtype_str}】，客户情绪表现为【{emotion_str}】。"
+        f"信息来源为【{info_str}】，当前推荐技能为【{skill_str}】，客户意图识别为【{intent_str}】。"
+        f"时序监测：意向走势为【{t1_str}】，拒绝类型为【{t7_str}】，异议化解程度为【{t8_str}】。"
         f"当前的槽位流水执行建议是：{slot_decision}。"
     )
 
-    # 根据“快慢思考”动态路由
-    if pred_thinking == 1:
+    # 慢思考条件：宏观/深度分析 OR 促单-高意向
+    pred_slow = (pred_subtype == 2) or (pred_intent == 3)
+
+    if pred_slow:
         system_prompt = f"""你是一名极具专家心智的银行理财业务主管（小张经理）。
 当前对话状态的客观叙事约束：
 {narrative_context}
@@ -145,12 +161,12 @@ def run_agent_brain(dialogue_history):
 if __name__ == "__main__":
     simulated_history = [
         "听说你们民生银行最近收益不给力啊？",
-        "隔幕建设银行天天给我推4.0的利息，你们怎么这么低？",
+        "隔壁建设银行天天给我推4.0的利息，你们怎么这么低？",
         "等我股市里的资金到账了，我再和我老婆商量一下大额存单的事。"
     ]
 
-    print("🎬 开始推演【 6 维意图 + 多轮时序 + NER 槽位】全闭环总流向...")
+    print("开始推演【6维意图 + 多轮时序(T1/T7/T8) + NER槽位】全闭环总流向...")
     final_reply = run_agent_brain(simulated_history)
 
-    print("\n🏆 【大模型最终话术输出（基于 6 维全状态内化）】:")
+    print("\n【大模型最终话术输出（基于6维全状态内化）】:")
     print(final_reply)
