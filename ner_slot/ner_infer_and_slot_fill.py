@@ -1,6 +1,74 @@
 import os
 import json
+import torch
+import torch.nn as nn
 from datetime import datetime, timedelta
+from transformers import AutoTokenizer, AutoModel
+
+# ==================== NER 标签定义 ====================
+NER_LABELS = ["O", "B-TIME", "I-TIME", "B-WAIT_COND", "I-WAIT_COND",
+              "B-RELATION_PERSON", "I-RELATION_PERSON", "B-MATERIAL", "I-MATERIAL"]
+NER_ID2LABEL = {i: l for i, l in enumerate(NER_LABELS)}
+
+
+# ==================== 🤖 NER 推理器 ====================
+class NERInferencer:
+    """加载训练好的 BGE+Linear NER 头，对单句文本做命名实体识别推理。"""
+
+    def __init__(self, bert_path, head_path, device="cpu"):
+        self.device = device
+        self.tokenizer = AutoTokenizer.from_pretrained(bert_path)
+        self.bert = AutoModel.from_pretrained(bert_path).to(device)
+        self.bert.eval()
+        self.head = nn.Linear(self.bert.config.hidden_size, len(NER_LABELS)).to(device)
+        self.head.load_state_dict(torch.load(head_path, map_location=device))
+        self.head.eval()
+
+    def predict(self, text: str) -> list:
+        """返回 [{"word": "...", "type": "TIME"}, ...] 格式的实体列表。"""
+        encoding = self.tokenizer(
+            text,
+            return_offsets_mapping=True,
+            truncation=True,
+            max_length=128,
+            return_tensors="pt",
+        )
+        offset_mapping = encoding.pop("offset_mapping")[0].tolist()
+        input_ids = encoding["input_ids"].to(self.device)
+        attention_mask = encoding["attention_mask"].to(self.device)
+
+        with torch.no_grad():
+            outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+            logits = self.head(outputs.last_hidden_state)
+            pred_ids = torch.argmax(logits, dim=-1)[0].tolist()
+
+        entities = []
+        current_entity = None  # {"type": ..., "_char_start": ..., "_char_end": ...}
+
+        for pred_id, (start, end) in zip(pred_ids, offset_mapping):
+            if start == end:  # 特殊/填充 token
+                if current_entity:
+                    entities.append({"word": text[current_entity["_char_start"]:current_entity["_char_end"]], "type": current_entity["type"]})
+                    current_entity = None
+                continue
+
+            label = NER_ID2LABEL[pred_id]
+
+            if label.startswith("B-"):
+                if current_entity:
+                    entities.append({"word": text[current_entity["_char_start"]:current_entity["_char_end"]], "type": current_entity["type"]})
+                current_entity = {"type": label[2:], "_char_start": start, "_char_end": end}
+            elif label.startswith("I-") and current_entity and current_entity["type"] == label[2:]:
+                current_entity["_char_end"] = end
+            else:
+                if current_entity:
+                    entities.append({"word": text[current_entity["_char_start"]:current_entity["_char_end"]], "type": current_entity["type"]})
+                current_entity = None
+
+        if current_entity:
+            entities.append({"word": text[current_entity["_char_start"]:current_entity["_char_end"]], "type": current_entity["type"]})
+
+        return entities
 
 
 
