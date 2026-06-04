@@ -27,6 +27,14 @@ print("===================================================================\n")
 
 # 1. 统一加载模型（锁定在项目根目录下）
 ENCODER_PATH = "./my_final_six_intents_model/bge_encoder"
+if not os.path.exists(ENCODER_PATH):
+    fallback_encoder_path = "./models/bge-small-zh-v1.5"
+    if not os.path.exists(fallback_encoder_path):
+        raise FileNotFoundError(
+            "找不到语义编码器。请先运行 python3 intent_classification/download_model.py，"
+            "或重新运行 python3 intent_classification/six_intent_server.py 生成 bge_encoder。"
+        )
+    ENCODER_PATH = fallback_encoder_path
 encoder = SentenceTransformer(ENCODER_PATH, device=device)
 
 # A. 载入全量 6 意图机器学习分类头（v2 格式，带版本校验）

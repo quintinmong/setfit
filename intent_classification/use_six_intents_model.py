@@ -11,9 +11,18 @@ sys.path.insert(0, root_dir)
 # 适配 git worktree 场景
 _main_repo_root = os.path.dirname(os.path.dirname(os.path.dirname(root_dir))) if ".claude/worktrees" in root_dir else root_dir
 model_dir = os.path.abspath(os.path.join(_main_repo_root, "my_final_six_intents_model"))
+base_encoder_dir = os.path.abspath(os.path.join(_main_repo_root, "models/bge-small-zh-v1.5"))
 
 # 加载编码器
-encoder = SentenceTransformer(os.path.join(model_dir, "bge_encoder"))
+encoder_dir = os.path.join(model_dir, "bge_encoder")
+if not os.path.exists(encoder_dir):
+    if not os.path.exists(base_encoder_dir):
+        raise FileNotFoundError(
+            "找不到语义编码器。请先运行 python3 intent_classification/download_model.py，"
+            "或重新运行 python3 intent_classification/six_intent_server.py 生成 bge_encoder。"
+        )
+    encoder_dir = base_encoder_dir
+encoder = SentenceTransformer(encoder_dir)
 
 # 加载 artifact，校验版本
 artifact = joblib.load(os.path.join(model_dir, "classification_heads.pkl"))
