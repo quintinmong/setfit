@@ -3,6 +3,7 @@ import json
 import random
 import time
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from openai import OpenAI
 from dotenv import load_dotenv, find_dotenv  # 引入外部环境变量加载器及寻址器
 
@@ -14,6 +15,9 @@ API_KEY = os.getenv("LLM_API_KEY")
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
 MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
 TARGET_COUNT = int(os.getenv("TARGET_COUNT_PER_LABEL", "60"))
+LLM_BATCH_SIZE = int(os.getenv("LLM_BATCH_SIZE", "10"))
+LLM_MAX_WORKERS = int(os.getenv("LLM_MAX_WORKERS", "200"))
+LLM_MAX_RETRIES_PER_LABEL = int(os.getenv("LLM_MAX_RETRIES_PER_LABEL", "5"))
 
 # 获取当前脚本所在目录作为绝对路径基准
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -155,6 +159,176 @@ def _generate_task_dataset(task_name, track_defs, system_prompt, label_list, tar
     return task_dataset
 
 
+def _generate_label_dataset_concurrent(task_name, label, track_defs, system_prompt, target_count, client):
+    """并发生成单个 task/label 的样本池。"""
+    current_pool = []
+    empty_retry_count = 0
+    total_batches = 0
+
+    def submit_batch(executor, count):
+        return executor.submit(
+            generate_batch_by_llm,
+            label,
+            count,
+            client,
+            system_prompt,
+            track_defs,
+        )
+
+    with ThreadPoolExecutor(max_workers=max(1, LLM_MAX_WORKERS)) as executor:
+        pending = set()
+
+        initial_batches = max(1, (target_count + LLM_BATCH_SIZE - 1) // LLM_BATCH_SIZE)
+        for _ in range(initial_batches):
+            pending.add(submit_batch(executor, min(LLM_BATCH_SIZE, target_count)))
+            total_batches += 1
+
+        while pending and len(current_pool) < target_count:
+            done, pending = wait(pending, return_when=FIRST_COMPLETED)
+
+            for future in done:
+                batch = future.result()
+                valid_count = 0
+                for sample in batch:
+                    if "history" in sample and len(sample["history"]) == 3 and sample.get("label") == label:
+                        sample["task"] = task_name
+                        current_pool.append(sample)
+                        valid_count += 1
+
+                print(
+                    f"    --> [{task_name}:{label}] 批次完成：吐出 {len(batch)} 条，通过校验 {valid_count} 条 "
+                    f"({min(len(current_pool), target_count)}/{target_count})",
+                    flush=True,
+                )
+
+                if valid_count == 0:
+                    empty_retry_count += 1
+
+                if len(current_pool) < target_count and empty_retry_count < LLM_MAX_RETRIES_PER_LABEL:
+                    needed = target_count - len(current_pool)
+                    if len(pending) * LLM_BATCH_SIZE < needed:
+                        pending.add(submit_batch(executor, min(LLM_BATCH_SIZE, needed)))
+                        total_batches += 1
+
+        for future in pending:
+            future.cancel()
+
+    print(
+        f"  ✅ [{task_name}] 标签 {label} 共收集 {len(current_pool[:target_count])} 条 "
+        f"(提交批次 {total_batches})",
+        flush=True,
+    )
+    return current_pool[:target_count]
+
+
+def _generate_task_dataset_concurrent(task_name, track_defs, system_prompt, label_list, target_count, client):
+    """并发生成单个任务的全部标签数据。"""
+    task_dataset = []
+    for lbl in label_list:
+        print(f"\n  🎬 [{task_name}] 并发生成标签 {lbl} ({track_defs[lbl]['name']})...", flush=True)
+        label_data = _generate_label_dataset_concurrent(
+            task_name=task_name,
+            label=lbl,
+            track_defs=track_defs,
+            system_prompt=system_prompt,
+            target_count=target_count,
+            client=client,
+        )
+        task_dataset.extend(label_data)
+    return task_dataset
+
+
+def _generate_all_tasks_concurrent(task_specs, target_count, client):
+    """统一并发生成 T1/T7/T8 的全部标签批次。"""
+    pools = {
+        (spec["task_name"], label): []
+        for spec in task_specs
+        for label in spec["label_list"]
+    }
+    extra_submit_counts = {key: 0 for key in pools}
+    future_meta = {}
+
+    def submit_batch(executor, spec, label, count):
+        future = executor.submit(
+            generate_batch_by_llm,
+            label,
+            count,
+            client,
+            spec["system_prompt"],
+            spec["track_defs"],
+        )
+        future_meta[future] = (spec, label, count)
+        return future
+
+    def pending_capacity(pending, task_name, label):
+        return sum(
+            count
+            for future in pending
+            for spec, meta_label, count in [future_meta[future]]
+            if spec["task_name"] == task_name and meta_label == label
+        )
+
+    total_initial_batches = 0
+    with ThreadPoolExecutor(max_workers=max(1, LLM_MAX_WORKERS)) as executor:
+        pending = set()
+        for spec in task_specs:
+            for label in spec["label_list"]:
+                batches = max(1, (target_count + LLM_BATCH_SIZE - 1) // LLM_BATCH_SIZE)
+                for batch_idx in range(batches):
+                    remaining = target_count - batch_idx * LLM_BATCH_SIZE
+                    pending.add(submit_batch(executor, spec, label, min(LLM_BATCH_SIZE, remaining)))
+                    total_initial_batches += 1
+
+        print(f"\n并发调度已提交初始批次: {total_initial_batches} 个", flush=True)
+
+        while pending:
+            done, pending = wait(pending, return_when=FIRST_COMPLETED)
+
+            for future in done:
+                spec, label, requested_count = future_meta.pop(future)
+                task_name = spec["task_name"]
+                key = (task_name, label)
+                batch = future.result()
+
+                valid_count = 0
+                for sample in batch:
+                    if "history" in sample and len(sample["history"]) == 3 and sample.get("label") == label:
+                        sample["task"] = task_name
+                        pools[key].append(sample)
+                        valid_count += 1
+
+                current_count = min(len(pools[key]), target_count)
+                print(
+                    f"  --> [{task_name}:{label}] 批次完成：请求 {requested_count} 条，吐出 {len(batch)} 条，"
+                    f"通过 {valid_count} 条 ({current_count}/{target_count})",
+                    flush=True,
+                )
+
+                if len(pools[key]) + pending_capacity(pending, task_name, label) < target_count:
+                    if extra_submit_counts[key] < LLM_MAX_RETRIES_PER_LABEL:
+                        needed = target_count - len(pools[key]) - pending_capacity(pending, task_name, label)
+                        pending.add(submit_batch(executor, spec, label, min(LLM_BATCH_SIZE, needed)))
+                        extra_submit_counts[key] += 1
+                    else:
+                        print(
+                            f"  ⚠️ [{task_name}:{label}] 已达到额外重试上限，当前有效 {len(pools[key])}/{target_count}",
+                            flush=True,
+                        )
+
+    task_datasets = {}
+    for spec in task_specs:
+        task_name = spec["task_name"]
+        task_dataset = []
+        for label in spec["label_list"]:
+            key = (task_name, label)
+            label_data = pools[key][:target_count]
+            print(f"  ✅ [{task_name}] 标签 {label} 共收集 {len(label_data)} 条", flush=True)
+            task_dataset.extend(label_data)
+        task_datasets[task_name] = task_dataset
+
+    return task_datasets
+
+
 # ==================== 新版多头时序数据生成 ====================
 
 # T1：意向走势（3类）
@@ -287,20 +461,36 @@ def main_multihead():
     print(f"  ├── 模型基座 URL: {BASE_URL}")
     print(f"  ├── 选定模型实例: {MODEL_NAME}")
     print(f"  └── 每类时序目标: {TARGET_COUNT} 条")
+    print(f"  ├── 单请求样本数: {LLM_BATCH_SIZE} 条")
+    print(f"  └── 最大并发请求: {LLM_MAX_WORKERS}")
     print("===================================================================\n")
 
     client = _get_client()
 
+    task_specs = [
+        {
+            "task_name": "T1",
+            "track_defs": T1_TRACK_DEFINITIONS,
+            "system_prompt": T1_SYSTEM_PROMPT,
+            "label_list": [0, 1, 2],
+        },
+        {
+            "task_name": "T7",
+            "track_defs": T7_TRACK_DEFINITIONS,
+            "system_prompt": T7_SYSTEM_PROMPT,
+            "label_list": [0, 1, 2, 3],
+        },
+        {
+            "task_name": "T8",
+            "track_defs": T8_TRACK_DEFINITIONS,
+            "system_prompt": T8_SYSTEM_PROMPT,
+            "label_list": [0, 1, 2],
+        },
+    ]
+    generated = _generate_all_tasks_concurrent(task_specs, TARGET_COUNT, client)
+
     # ---- T1：意向走势（3类 × 60 = 180条）----
-    print("\n======= 开始生成 T1（意向走势）数据 =======", flush=True)
-    t1_data = _generate_task_dataset(
-        task_name="T1",
-        track_defs=T1_TRACK_DEFINITIONS,
-        system_prompt=T1_SYSTEM_PROMPT,
-        label_list=[0, 1, 2],
-        target_count=TARGET_COUNT,
-        client=client
-    )
+    t1_data = generated["T1"]
     random.shuffle(t1_data)
     t1_path = os.path.join(current_dir, "temporal_t1.json")
     with open(t1_path, "w", encoding="utf-8") as f:
@@ -308,15 +498,7 @@ def main_multihead():
     print(f"\n✅ T1 数据已保存至: {t1_path}（共 {len(t1_data)} 条）", flush=True)
 
     # ---- T7：拒绝类型（4类 × 60 = 240条）----
-    print("\n======= 开始生成 T7（拒绝类型）数据 =======", flush=True)
-    t7_data = _generate_task_dataset(
-        task_name="T7",
-        track_defs=T7_TRACK_DEFINITIONS,
-        system_prompt=T7_SYSTEM_PROMPT,
-        label_list=[0, 1, 2, 3],
-        target_count=TARGET_COUNT,
-        client=client
-    )
+    t7_data = generated["T7"]
     random.shuffle(t7_data)
     t7_path = os.path.join(current_dir, "temporal_t7.json")
     with open(t7_path, "w", encoding="utf-8") as f:
@@ -324,15 +506,7 @@ def main_multihead():
     print(f"\n✅ T7 数据已保存至: {t7_path}（共 {len(t7_data)} 条）", flush=True)
 
     # ---- T8：化解程度（3类 × 60 = 180条）----
-    print("\n======= 开始生成 T8（化解程度）数据 =======", flush=True)
-    t8_data = _generate_task_dataset(
-        task_name="T8",
-        track_defs=T8_TRACK_DEFINITIONS,
-        system_prompt=T8_SYSTEM_PROMPT,
-        label_list=[0, 1, 2],
-        target_count=TARGET_COUNT,
-        client=client
-    )
+    t8_data = generated["T8"]
     random.shuffle(t8_data)
     t8_path = os.path.join(current_dir, "temporal_t8.json")
     with open(t8_path, "w", encoding="utf-8") as f:
