@@ -13,11 +13,15 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModel
+from torchcrf import CRF
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
+sys.path.insert(0, root_dir)
 
-BERT_PATH = os.path.join(root_dir, "my_final_six_intents_model/bge_encoder")
+from shared_encoder import resolve_encoder_path
+
+BERT_PATH = resolve_encoder_path(root_dir)
 DATA_PATH = os.path.join(current_dir, "ner_raw_corpus.json")
 SAVE_PATH = os.path.join(root_dir, "my_final_six_intents_model/ner_head_weights.pth")
 
@@ -55,9 +59,12 @@ def align_labels_to_tokens(tokenizer, text, entities):
     offset_mapping = encoding.pop("offset_mapping")
 
     token_labels = []
-    for (start, end) in offset_mapping:
-        if start == end:  # [CLS] / [SEP] / [PAD]
+    for idx, (start, end) in enumerate(offset_mapping):
+        token_id = encoding["input_ids"][idx]
+        if token_id == tokenizer.pad_token_id:
             token_labels.append(-100)
+        elif token_id in (tokenizer.cls_token_id, tokenizer.sep_token_id):
+            token_labels.append(LABEL2ID.get("O", 0))
         else:
             label_str = char_labels[start] if start < len(char_labels) else "O"
             token_labels.append(LABEL2ID.get(label_str, 0))
@@ -90,18 +97,31 @@ class BertNERModel(nn.Module):
             param.requires_grad = False
         self.dropout = nn.Dropout(0.1)
         self.classifier = nn.Linear(self.bert.config.hidden_size, num_labels)
+        self.crf = CRF(num_labels, batch_first=True)
 
-    def forward(self, input_ids, attention_mask):
+    def forward(self, input_ids, attention_mask, labels=None):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
         sequence_output = self.dropout(outputs.last_hidden_state)
-        return self.classifier(sequence_output)
+        emissions = self.classifier(sequence_output)
+
+        mask = attention_mask.bool()
+
+        if labels is not None:
+            clean_labels = labels.clone()
+            clean_labels[clean_labels == -100] = 0
+            loss = -self.crf(emissions, clean_labels, mask=mask, reduction='mean')
+            return loss
+        else:
+            return self.crf.decode(emissions, mask=mask)
 
 
 def main():
     device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     print("===================================================================")
-    print(f"🚀 NER 分类头训练引擎启动 | 核心设备: {device}")
+    print(f"NER (MacBERT + CRF) 训练引擎启动 | 核心设备: {device}")
     print("===================================================================")
+    if BERT_PATH is None:
+        raise FileNotFoundError("找不到 MacBERT 底座！请先运行 python3 intent_classification/download_model.py。")
 
     print(f"\n📂 加载 NER 语料: {DATA_PATH}")
     with open(DATA_PATH, "r", encoding="utf-8") as f:
@@ -123,13 +143,12 @@ def main():
     dataset = NERDataset(encodings_list, labels_list)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    print(f"\n🏗 初始化 BertNERModel（冻结底座，只训 Linear Head）...")
+    print(f"\n🏗 初始化 BertNERModel（冻结底座，训练 Linear + CRF 层）...")
     model = BertNERModel(BERT_PATH, NUM_LABELS).to(device)
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"  └── 可训练参数: {trainable:,}（底座已冻结）")
 
-    criterion = nn.CrossEntropyLoss(ignore_index=-100)
-    optimizer = optim.Adam(model.classifier.parameters(), lr=LR)
+    optimizer = optim.Adam(list(model.classifier.parameters()) + list(model.crf.parameters()), lr=LR)
 
     print(f"\n🪐 开始训练 (Epochs={EPOCHS}, BatchSize={BATCH_SIZE}, LR={LR})...")
     model.train()
@@ -141,8 +160,7 @@ def main():
             labels = batch["labels"].to(device)
 
             optimizer.zero_grad()
-            logits = model(input_ids, attention_mask)
-            loss = criterion(logits.view(-1, NUM_LABELS), labels.view(-1))
+            loss = model(input_ids, attention_mask, labels)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
@@ -151,8 +169,12 @@ def main():
             print(f"  ├── Epoch [{epoch:02d}/{EPOCHS}] -> Loss: {epoch_loss:.4f}")
 
     os.makedirs(os.path.dirname(SAVE_PATH), exist_ok=True)
-    torch.save(model.classifier.state_dict(), SAVE_PATH)
-    print(f"\n🏆 NER 分类头已成功保存至: '{SAVE_PATH}'")
+    save_data = {
+        "classifier": model.classifier.state_dict(),
+        "crf": model.crf.state_dict()
+    }
+    torch.save(save_data, SAVE_PATH)
+    print(f"\n🏆 NER 分类头与 CRF 权重已成功保存至: '{SAVE_PATH}'")
 
 
 if __name__ == "__main__":

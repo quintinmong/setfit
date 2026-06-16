@@ -19,11 +19,11 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from collections import Counter
 from dotenv import load_dotenv, find_dotenv
+from shared_encoder import MacBertEncoder, resolve_encoder_path
 
 from temporal_signal.temporal_constants import (
     WINDOW_SIZE, TASK_ID,
@@ -37,7 +37,7 @@ from temporal_signal.temporal_constants import (
 class MultiHeadTemporalGRU(nn.Module):
     """多头时序 GRU：共享 GRU 编码器，T1/T7/T8 各有独立分类头。"""
 
-    def __init__(self, input_size=512, hidden_size=64):
+    def __init__(self, input_size=768, hidden_size=64):
         super().__init__()
         self.hidden_size = hidden_size
         self.gru = nn.GRU(input_size, hidden_size, num_layers=1, batch_first=True)
@@ -46,7 +46,7 @@ class MultiHeadTemporalGRU(nn.Module):
         self.head_t8 = nn.Linear(hidden_size, 3)   # T8: 3类
 
     def forward(self, x):
-        """x: [B, WINDOW_SIZE, 512] -> (logits_t1, logits_t7, logits_t8)"""
+        """x: [B, WINDOW_SIZE, 768] -> (logits_t1, logits_t7, logits_t8)"""
         h0 = torch.zeros(1, x.size(0), self.hidden_size).to(x.device)
         out, _ = self.gru(x, h0)
         h = out[:, -1, :]  # 最后时刻隐状态
@@ -56,7 +56,7 @@ class MultiHeadTemporalGRU(nn.Module):
 # ==================== 数据集定义 ====================
 
 class UnifiedTemporalDataset(Dataset):
-    """统一时序数据集，每条样本包含 (embeddings [5,512], label, task_id)。"""
+    """统一时序数据集，每条样本包含 (embeddings [5,768], label, task_id)。"""
 
     def __init__(self, X, y, task_ids):
         self.X = torch.tensor(X, dtype=torch.float32)
@@ -79,7 +79,7 @@ TemporalSignalGRU = MultiHeadTemporalGRU
 def main():
     load_dotenv(find_dotenv())
 
-    X_DIM = int(os.getenv("GRU_INPUT_SIZE", "512"))
+    X_DIM = int(os.getenv("GRU_INPUT_SIZE", "768"))
     HIDDEN_DIM = int(os.getenv("GRU_HIDDEN_SIZE", "64"))
     LR = float(os.getenv("GRU_LEARNING_RATE", "0.005"))
     EPOCHS = int(os.getenv("GRU_EPOCHS", "30"))
@@ -112,21 +112,18 @@ def main():
 
     print(f"\n数据加载完毕: T1={len(t1_raw)} 条, T7={len(t7_raw)} 条, T8={len(t8_raw)} 条")
 
-    # 2. 加载 BGE 编码器
-    ENCODER_PATH = os.path.join(root_dir, "my_final_six_intents_model/bge_encoder")
-    BASE_MODEL_PATH = os.path.join(root_dir, "models/bge-small-zh-v1.5")
+    # 2. 加载 MacBERT 编码器
+    ENCODER_PATH = resolve_encoder_path(root_dir)
+    if ENCODER_PATH is None:
+        raise FileNotFoundError("找不到 MacBERT 底座！请先运行 python3 intent_classification/download_model.py。")
 
-    if not os.path.exists(ENCODER_PATH):
-        print(f"未检测到微调底座，回滚至基础底座: {BASE_MODEL_PATH}")
-        ENCODER_PATH = BASE_MODEL_PATH
-    else:
-        print(f"成功检测到微调底座: {ENCODER_PATH}")
-
-    if not os.path.exists(ENCODER_PATH):
-        raise FileNotFoundError(f"找不到模型底座！请确认 models/bge-small-zh-v1.5 是否下载完整。")
-
-    print(f"正在加载语义编码底座: {ENCODER_PATH}")
-    encoder = SentenceTransformer(ENCODER_PATH, device=device)
+    print(f"正在加载共享冻结 MacBERT 底座: {ENCODER_PATH}")
+    encoder = MacBertEncoder(ENCODER_PATH, device=device)
+    if X_DIM != encoder.embedding_dim:
+        raise ValueError(
+            f"GRU_INPUT_SIZE={X_DIM} 与 MacBERT hidden_size={encoder.embedding_dim} 不一致。"
+            "请将 .env 中的 GRU_INPUT_SIZE 更新为 768。"
+        )
 
     # 3. 特征提取（使用 pad_temporal_embeddings 统一处理 WINDOW_SIZE=5）
     print("\n开始特征提取（窗口大小=5，不足则前补零）...")
@@ -135,7 +132,7 @@ def main():
         X_list, y_list, task_id_list = [], [], []
         tid = TASK_ID[task_key]
         for item in raw_data:
-            emb = pad_temporal_embeddings(encoder, item["history"])  # [5, 512]
+            emb = pad_temporal_embeddings(encoder, item["history"])  # [5, 768]
             X_list.append(emb)
             y_list.append(item["label"])
             task_id_list.append(tid)

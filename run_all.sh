@@ -27,7 +27,7 @@ fi
 $PYTHON_BIN --version
 
 # 2. 下载共享基础底座模型
-print_banner "步骤 1: 启动共享语义向量底座模型下载 (BGE-small)"
+print_banner "步骤 1: 启动共享语义向量底座模型下载 (MacBERT-base)"
 $PYTHON_BIN intent_classification/download_model.py
 
 # 3. 微调底座并训练 6 个机器学习分类头
@@ -38,8 +38,12 @@ $PYTHON_BIN intent_classification/six_intent_server.py
 print_banner "步骤 3: 启动三轮时序窗口 GRU 神经网络模型训练"
 $PYTHON_BIN temporal_signal/train_temporal_model.py
 
-# 5. 闭环执行大脑路由进行推理验证
-print_banner "步骤 4: 启动终极大脑总路由集成推理测试 (6维+时序+NER)"
+# 5. 训练 NER Linear + CRF 槽位模型
+print_banner "步骤 4: 启动 NER 槽位模型训练"
+$PYTHON_BIN ner_slot/ner_train.py
+
+# 6. 闭环执行大脑路由进行推理验证
+print_banner "步骤 5: 启动终极大脑总路由集成推理测试 (6维+时序+NER)"
 $PYTHON_BIN agent_router.py
 
 print_banner "🎉 恭喜！数字分身 Agent 训练流水线一键跑通，模型资产已全部固化就绪！"

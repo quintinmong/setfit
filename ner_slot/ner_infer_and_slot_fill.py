@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from datetime import datetime, timedelta
 from transformers import AutoTokenizer, AutoModel
+from torchcrf import CRF
 
 # ==================== NER 标签定义 ====================
 NER_LABELS = ["O", "B-TIME", "I-TIME", "B-WAIT_COND", "I-WAIT_COND",
@@ -13,16 +14,27 @@ NER_ID2LABEL = {i: l for i, l in enumerate(NER_LABELS)}
 
 # ==================== 🤖 NER 推理器 ====================
 class NERInferencer:
-    """加载训练好的 BGE+Linear NER 头，对单句文本做命名实体识别推理。"""
+    """加载训练好的 MacBERT+CRF NER 头，对单句文本做命名实体识别推理。"""
 
     def __init__(self, bert_path, head_path, device="cpu"):
         self.device = device
         self.tokenizer = AutoTokenizer.from_pretrained(bert_path)
         self.bert = AutoModel.from_pretrained(bert_path).to(device)
+        for param in self.bert.parameters():
+            param.requires_grad = False
         self.bert.eval()
         self.head = nn.Linear(self.bert.config.hidden_size, len(NER_LABELS)).to(device)
-        self.head.load_state_dict(torch.load(head_path, map_location=device))
+        self.crf = CRF(len(NER_LABELS), batch_first=True).to(device)
+
+        checkpoint = torch.load(head_path, map_location=device)
+        if isinstance(checkpoint, dict) and "classifier" in checkpoint and "crf" in checkpoint:
+            self.head.load_state_dict(checkpoint["classifier"])
+            self.crf.load_state_dict(checkpoint["crf"])
+        else:
+            self.head.load_state_dict(checkpoint)
+
         self.head.eval()
+        self.crf.eval()
 
     def predict(self, text: str) -> list:
         """返回 [{"word": "...", "type": "TIME"}, ...] 格式的实体列表。"""
@@ -39,13 +51,17 @@ class NERInferencer:
 
         with torch.no_grad():
             outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-            logits = self.head(outputs.last_hidden_state)
-            pred_ids = torch.argmax(logits, dim=-1)[0].tolist()
+            emissions = self.head(outputs.last_hidden_state)
+            mask = attention_mask.bool()
+            pred_ids = self.crf.decode(emissions, mask=mask)[0]
 
         entities = []
         current_entity = None  # {"type": ..., "_char_start": ..., "_char_end": ...}
 
-        for pred_id, (start, end) in zip(pred_ids, offset_mapping):
+        # Slice offset_mapping to the same length as pred_ids
+        active_offsets = offset_mapping[:len(pred_ids)]
+
+        for pred_id, (start, end) in zip(pred_ids, active_offsets):
             if start == end:  # 特殊/填充 token
                 if current_entity:
                     entities.append({"word": text[current_entity["_char_start"]:current_entity["_char_end"]], "type": current_entity["type"]})

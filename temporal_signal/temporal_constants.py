@@ -13,7 +13,7 @@ import torch
 # ======================== 共享常量 ========================
 
 WINDOW_SIZE = 5
-EMBED_DIM = 512
+EMBED_DIM = 768
 
 # T1：意向走势（3类）
 T1_LABELS = {0: "平稳", 1: "升温", 2: "降温"}
@@ -77,16 +77,16 @@ INTENT_LABEL_MAPS = {
 # ======================== 特征工具函数 ========================
 
 def pad_temporal_embeddings(encoder, history):
-    """截取最近 WINDOW_SIZE 轮，前补零，返回 np.ndarray [5, 512]。供训练集构建用。"""
+    """截取最近 WINDOW_SIZE 轮，前补零，返回 np.ndarray [5, 768]。供训练集构建用。"""
     window = list(history)[-WINDOW_SIZE:]
     embeddings = encoder.encode(window, show_progress_bar=False)
     if len(embeddings) < WINDOW_SIZE:
         pad = np.zeros((WINDOW_SIZE - len(embeddings), EMBED_DIM))
         embeddings = np.vstack([pad, embeddings])
-    return embeddings  # [5, 512]
+    return embeddings  # [5, 768]
 
 
 def prepare_temporal_features(encoder, history, device="cpu"):
-    """截取最近 WINDOW_SIZE 轮，前补零，返回 tensor [1, 5, 512]。供推理用。"""
+    """截取最近 WINDOW_SIZE 轮，前补零，返回 tensor [1, 5, 768]。供推理用。"""
     embeddings = pad_temporal_embeddings(encoder, history)
     return torch.tensor(embeddings, dtype=torch.float32).unsqueeze(0).to(device)

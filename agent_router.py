@@ -5,7 +5,6 @@ import joblib
 import numpy as np
 from openai import OpenAI
 from dotenv import load_dotenv, find_dotenv
-from sentence_transformers import SentenceTransformer
 
 # 引入写好的业务模块（使用动态绝对路径加固过的模块）
 from ner_slot.ner_infer_and_slot_fill import SlotFillingStateMachine, NERInferencer
@@ -17,25 +16,24 @@ from temporal_signal.temporal_constants import (
     T1_LABELS, T7_LABELS, T8_LABELS,
     INTENT_LABEL_MAPS
 )
+from shared_encoder import ENCODER_ARTIFACT_DIR, MacBertEncoder, resolve_encoder_path
 
 # 0. 载入配置与硬件加速 (自动向上回溯寻找根目录的 .env)
 load_dotenv(find_dotenv())
+root_dir = os.path.dirname(os.path.abspath(__file__))
 device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 print("===================================================================")
 print(f"银行客户经理数字分身 Agent 终极全功能大脑启动... | 核心设备: {device}")
 print("===================================================================\n")
 
 # 1. 统一加载模型（锁定在项目根目录下）
-ENCODER_PATH = "./my_final_six_intents_model/bge_encoder"
-if not os.path.exists(ENCODER_PATH):
-    fallback_encoder_path = "./models/bge-small-zh-v1.5"
-    if not os.path.exists(fallback_encoder_path):
-        raise FileNotFoundError(
-            "找不到语义编码器。请先运行 python3 intent_classification/download_model.py，"
-            "或重新运行 python3 intent_classification/six_intent_server.py 生成 bge_encoder。"
-        )
-    ENCODER_PATH = fallback_encoder_path
-encoder = SentenceTransformer(ENCODER_PATH, device=device)
+ENCODER_PATH = resolve_encoder_path(root_dir)
+if ENCODER_PATH is None:
+    raise FileNotFoundError(
+        "找不到语义编码器。请先运行 python3 intent_classification/download_model.py，"
+        f"或重新运行 python3 intent_classification/six_intent_server.py 生成 {ENCODER_ARTIFACT_DIR}。"
+    )
+encoder = MacBertEncoder(ENCODER_PATH, device=device)
 
 # A. 载入全量 6 意图机器学习分类头（v2 格式，带版本校验）
 _artifact = joblib.load("./my_final_six_intents_model/classification_heads.pkl")

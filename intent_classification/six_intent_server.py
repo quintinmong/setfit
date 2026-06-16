@@ -9,7 +9,6 @@ if not hasattr(transformers.training_args, "default_logdir"):
 import os
 import torch
 import joblib
-from sentence_transformers import SentenceTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -21,28 +20,20 @@ root_dir = os.path.dirname(current_dir)
 sys.path.insert(0, root_dir)
 
 from temporal_signal.temporal_constants import INTENT_HEAD_NAMES, INTENT_LABEL_MAPS
+from shared_encoder import ENCODER_ARTIFACT_DIR, MacBertEncoder, resolve_encoder_path
 
 # 1. 使用方案指定的本地底座（路径加固：兼容 git worktree 环境）
 device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 
-# 优先从 worktree root 下找；若不存在则回退到主仓 root（适配 git worktree 场景）
-# worktree 路径结构: <main_repo>/.claude/worktrees/<id>/
-# 所以需要向上3层才到主仓根
 _main_repo_root = os.path.dirname(os.path.dirname(os.path.dirname(root_dir))) if ".claude/worktrees" in root_dir else root_dir
-_candidates = [
-    os.path.join(root_dir, "my_final_six_intents_model/bge_encoder"),
-    os.path.join(root_dir, "models/bge-small-zh-v1.5"),
-    os.path.join(_main_repo_root, "my_final_six_intents_model/bge_encoder"),
-    os.path.join(_main_repo_root, "models/bge-small-zh-v1.5"),
-]
-MODEL_PATH = next((p for p in _candidates if os.path.exists(p)), None)
+MODEL_PATH = resolve_encoder_path(root_dir)
 if MODEL_PATH is None:
     raise FileNotFoundError(
-        "找不到 BGE 底座！请确认 models/bge-small-zh-v1.5 已下载，或先运行过 six_intent_server.py。"
+        "找不到 MacBERT 底座！请先运行 python3 intent_classification/download_model.py。"
     )
 
-print(f"正在初始化共享底座 SentenceTransformer: {MODEL_PATH} ...")
-encoder = SentenceTransformer(MODEL_PATH, device=device)
+print(f"正在初始化共享冻结 MacBERT 底座: {MODEL_PATH} ...")
+encoder = MacBertEncoder(MODEL_PATH, device=device)
 
 # 2. 60条重标注数据集（新6维标签体系）
 # 字段说明：
@@ -725,7 +716,7 @@ head_il = train_and_evaluate(y_il, "intent_label")
 print("六路并行分类头训练完成！")
 
 # 6. 保存 v2 格式 artifact
-encoder.save(os.path.join(SAVE_DIR, "bge_encoder"))
+encoder.save(os.path.join(SAVE_DIR, ENCODER_ARTIFACT_DIR))
 
 artifact = {
     "heads": {
@@ -742,5 +733,5 @@ artifact = {
 joblib.dump(artifact, os.path.join(SAVE_DIR, "classification_heads.pkl"))
 
 print(f"\n全量模型成果已成功保存至本地文件夹：'{SAVE_DIR}'")
-print(f"1. 底座模型位于: {os.path.join(SAVE_DIR, 'bge_encoder')}")
+print(f"1. 底座模型位于: {os.path.join(SAVE_DIR, ENCODER_ARTIFACT_DIR)}")
 print(f"2. 6路分类头(v2格式)位于: {os.path.join(SAVE_DIR, 'classification_heads.pkl')}")

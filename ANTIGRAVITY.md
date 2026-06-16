@@ -23,7 +23,7 @@ source .venv312/bin/activate
 
 ### 2. 核心运行与微调命令
 
-- **下载基础模型底座（BGE-1.5 中文版）**
+- **下载基础模型底座（MacBERT-base 中文版）**
   ```bash
   .venv/bin/python3 intent_classification/download_model.py
   ```
@@ -79,7 +79,7 @@ if not hasattr(transformers.training_args, "default_logdir"):
 ```
 
 ### 2. 硬件加速（MPS/CUDA）使用
-在实例化 `SentenceTransformer` 底座或运行 PyTorch 模型时，优先进行多后端加速判断：
+在实例化 `MacBertEncoder` 底座或运行 PyTorch 模型时，优先进行多后端加速判断：
 ```python
 import torch
 
@@ -87,7 +87,7 @@ device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.i
 ```
 
 ### 3. 多分类头与特征抽取设计
-- 避免对相同句子重复调用 `SentenceTransformer.encode` 提取高维特征。
+- 避免对相同句子重复调用 `MacBertEncoder.encode` 提取高维特征。
 - 应当一次性对全部输入进行向量化得到 `X_train`，再分别传入各维度的分类头（如 Logistic Regression）进行独立并行拟合。
 - 保存多路分类头时，建议使用单个字典打包，并使用 `joblib.dump` 持久化，例如：
   ```python
@@ -108,4 +108,4 @@ device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.i
 ### 5. 多轮时序追踪设计规范
 - **固定上下文窗口**：时序追踪网络输入固定为连续 3 轮（T-2, T-1, T）的历史会话文本。
 - **Git 最佳实践**：敏感机密配置（如 `.env`）及易膨胀的二进制数据缓存（如 `.npy`）**禁止提交**，使用 `.gitignore` 排除。数据资产应存为 `.json` 纯文本格式进行版本管理，并提供 `.env.example` 配置文件模板。
-- **神经网络结构**：采用轻量级 `SentenceTransformer` 底座将 3 轮文本转成 `[Batch, 3, 512]` 维特征序列，送入单层 `TemporalSignalGRU` 提取最后一轮（T时刻）的隐状态进行时序模式分类。
+- **神经网络结构**：采用冻结 `MacBertEncoder` 底座将窗口内文本转成 `[Batch, 5, 768]` 维特征序列，送入单层 `TemporalSignalGRU` 提取最后一轮（T时刻）的隐状态进行时序模式分类。

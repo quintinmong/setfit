@@ -1,16 +1,7 @@
-import sys
-
-# ================= 🚨 猴子补丁终极进化版 🚨 =================
-# 把它改成一个返回字符串的匿名函数，完美契合 setfit() 的调用
-import transformers.training_args
-
-if not hasattr(transformers.training_args, "default_logdir"):
-    transformers.training_args.default_logdir = lambda: "runs"
-# ===================================================================
-
 import os
-from datasets import Dataset
-from setfit import SetFitModel, Trainer, TrainingArguments
+import sys
+import joblib
+from sklearn.linear_model import LogisticRegression
 
 # 1. 模拟冷启动数据
 train_data = {
@@ -27,34 +18,25 @@ train_data = {
     "label": [0, 0, 0, 0, 1, 1, 1, 1]
 }
 
-train_dataset = Dataset.from_dict(train_data)
-
 # 获取相对于当前脚本根目录的绝对路径，确保不论从何处运行，位置均一致
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
+sys.path.insert(0, root_dir)
 
-# 2. 严格指向你本地用 ModelScope 下载好的 1.5 路径
-MODEL_PATH = os.path.abspath(os.path.join(root_dir, "models/bge-small-zh-v1.5"))
+from shared_encoder import ENCODER_ARTIFACT_DIR, MacBertEncoder, resolve_encoder_path
 
-print(f"正在从本地加载 BGE-1.5 底座模型: {MODEL_PATH} ...")
-model = SetFitModel.from_pretrained(MODEL_PATH)
+# 2. 加载共享冻结 MacBERT 底座
+MODEL_PATH = resolve_encoder_path(root_dir)
+if MODEL_PATH is None:
+    raise FileNotFoundError("找不到 MacBERT 底座！请先运行 python3 intent_classification/download_model.py。")
 
-# 3. 设置轻量训练参数
-training_args = TrainingArguments(
-    batch_size=4,
-    num_epochs=2,
-    evaluation_strategy="no"
-)
+print(f"正在从本地加载 MacBERT 底座模型: {MODEL_PATH} ...")
+encoder = MacBertEncoder(MODEL_PATH)
 
-# 4. 初始化训练器
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=train_dataset
-)
-
-print("开始少样本微调训练...")
-trainer.train()
+# 3. 冻结底座抽特征，只训练轻量分类头
+print("开始抽取训练特征并拟合二分类头...")
+X_train = encoder.encode(train_data["text"], show_progress_bar=False)
+clf = LogisticRegression(class_weight="balanced", max_iter=1000).fit(X_train, train_data["label"])
 print("训练完成！")
 
 # 5. 现场合围推理测试
@@ -64,7 +46,8 @@ test_inputs = [
     "收益才3.2%，垃圾银行"
 ]
 
-preds = model.predict(test_inputs)
+X_test = encoder.encode(test_inputs, show_progress_bar=False)
+preds = clf.predict(X_test)
 
 for text, pred in zip(test_inputs, preds):
     label_name = "咨询响应" if pred == 0 else "情绪抱怨"
@@ -72,5 +55,7 @@ for text, pred in zip(test_inputs, preds):
 
 # 6. 保存模型
 save_path = os.path.abspath(os.path.join(root_dir, "my_first_intent_model"))
-model.save_pretrained(save_path)
+os.makedirs(save_path, exist_ok=True)
+encoder.save(os.path.join(save_path, ENCODER_ARTIFACT_DIR))
+joblib.dump(clf, os.path.join(save_path, "binary_intent_head.pkl"))
 print(f"\n业务模型已成功保存至 '{save_path}'")
